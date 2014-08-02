@@ -78,7 +78,7 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 			strip8(cfgs(CFG_EMSIFREQTIME)?ccs:(cfgs(CFG_FREQTIME)?ccs:strdup("Never"))),
 			time(NULL)+gmtoff(tm,0),gmtoff(tm,0)/3600);
 	xstrcat(dat,tmp,EMSI_BUF);
-	snprintf(tmp,1024,"%04X",strlen(dat)-14);
+	snprintf(tmp,1024,"%04lX",strlen(dat)-14);
 	memcpy(dat+10,tmp,4);
 	snprintf(tmp,1024,"%04X",crc16usds(dat+2));
 	xstrcat(dat,tmp,EMSI_BUF);

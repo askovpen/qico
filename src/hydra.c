@@ -101,7 +101,6 @@ static struct _h_flags h_flags[] = {
 
 static void hydra_msgdev (byte *data, word len)
 {       /* text is already NUL terminated by calling func hydra_devrecv() */
-	len = len;
 	write_log("HydraMsg: %s",data);
 }/*hydra_msgdev()*/
 
@@ -1025,7 +1024,7 @@ int hydra_file(char *txpathname, char *txalias)
 					} else {
 
 						sscanf((char *) rxbuf,"%08lx%08x%*08x%*08x%08x",
-						    (unsigned long*)&rxftime,&rxfsize,(unsigned*)&count);
+						    (unsigned long*)&rxftime,(unsigned int *)&rxfsize,(unsigned*)&count);
 
 						if(!recvf.allf && count) recvf.allf=count;
 

@@ -205,7 +205,7 @@ int janus()
 						last_blkpos = rxpos;
 						rpos_retry = rpos_count = 0;
                     				rxblklen -= 4;
-						if(fwrite(rxbuf+4, rxblklen, 1, rxfd)<0) {
+						if(fwrite(rxbuf+4, rxblklen, 1, rxfd)==0) {
 							write_log("write error on %s", recvf.fname);
 							goto giveup;
 						}

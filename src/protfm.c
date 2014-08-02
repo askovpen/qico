@@ -373,7 +373,7 @@ int chatsend(unsigned char *str)
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,0);
 		qchat("");
 	} else if(*str!=5) {
-		strncpy(ubuf,str,CHAT_BUF);
+		strncpy((char *)ubuf,(const char *)str,CHAT_BUF);
 		recode_to_remote((char*)ubuf);
 		if(!c_devsend(ubuf,strlen((char*)ubuf)))return 1;
 		if(chatlg)chatlog_write((char*)str,0);

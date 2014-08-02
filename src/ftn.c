@@ -326,7 +326,7 @@ char *mapname(char *fn,char *map,size_t size)
 	t=whattype(fn);
 	if(strchr(map,'b')&&t!=IS_FILE) {
 		l=strrchr(fn,'.');
-		snprintf(fn,14,"%08lx%s",crc32s(fn),l);
+		snprintf(fn,14,"%08x%s",crc32s(fn),l);
 	}
 	if(strchr(map,'u'))strupr(fn);
 	if(strchr(map,'l'))strlwr(fn);

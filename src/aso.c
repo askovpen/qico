@@ -282,7 +282,7 @@ int aso_setstatus(ftnaddr_t *fa,sts_t *st)
 	FILE *f;
 	if((f=mdfopen(aso_stsn(fa),"wt"))) {
 		fprintf(f,"%d %d %lu %lu",st->try,st->flags,st->htime,st->utime);
-		if(st->bp.name&&st->bp.flags)fprintf(f," %d %d %lu %s",st->bp.flags,st->bp.size,st->bp.time,st->bp.name);
+		if(st->bp.name&&st->bp.flags)fprintf(f," %d %zu %lu %s",st->bp.flags,st->bp.size,st->bp.time,st->bp.name);
 		fclose(f);
 		return 1;
 	}

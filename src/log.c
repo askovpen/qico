@@ -174,7 +174,7 @@ void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 			}
 			break;
 		case 2:
-			syslog(syslog_priority,p);
+			syslog(syslog_priority,"%s",p);
 			break;
 	}
 }

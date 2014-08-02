@@ -128,10 +128,10 @@ static int logic(int e1, int op,int e2)
 
 static int checkflag()
 {
-	int fln;
 	char *p, *q;
 	DEBUG(('Y',2,"checkflag: \"%s\"",yytext));
 #ifdef WITH_PERL
+	int fln;
 	if(!strncasecmp(yytext,"perl",4)) {
 		if((fln=atoi(yytext+4))<0||fln>9) {
 			write_log("error: invalid perl flag: %s",yytext);

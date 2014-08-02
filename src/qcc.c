@@ -907,7 +907,8 @@ static void printinfo(char *addr,int what,char *buf)
 	if(!*addr||!addr)return;
 	xstrcpy(buf+3,addr,64);
 	xcmd(buf,QR_INFO,strlen(addr)+4);
-	while(getmessages(buf)>0);rc=buf[2];
+	while(getmessages(buf)>0){}
+	rc=buf[2];
 	if(rc)return;
 	for(p=buf+3;strlen(p);rc++) {
 		write_log("%s: %s",infostrs[rc],p);

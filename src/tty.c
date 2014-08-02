@@ -113,8 +113,8 @@ void tty_unlock(char *port)
 	if((f=fopen(lckname,"r"))) {
 		fscanf(f,"%d",&pid);
 		fclose(f);
+	    if(pid==getpid())lunlink(lckname);
 	}
-	if(pid==getpid())lunlink(lckname);
 }
 
 int tty_lock(char *port)

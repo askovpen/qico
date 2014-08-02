@@ -210,7 +210,7 @@ int main(int argc,char **argv,char **envp)
 			    !strncasecmp(optarg,"auto",4))sesstype=SESSION_EMSI;
 #ifdef WITH_BINKP
 			if(strncasecmp(optarg,"binkp",5)&&
-			    (*optarg!=0x80||!optarg[1]||optarg[2]))break;
+			    ((uint)*optarg!=0x80||!optarg[1]||optarg[2]))break;
 			sesstype=SESSION_BINKP;
 		    case 'b':
 			bink=1;
