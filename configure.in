@@ -212,11 +212,14 @@ fi
 dnl qcc support
 AC_ARG_ENABLE(qcc,AC_HELP_STRING([--disable-qcc],[disable building of qcc]),,enable_qcc=yes)
 if test "${enable_qcc}x" != "nox"; then
-	AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,1,[Define to 1 if system have ncurses])
-	CURSES=ncurses],[AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,1,[Define to 1 if system have curses])
-	CURSES=curses])])
+	AC_CHECK_LIB(ncursesw,main,[AC_DEFINE(HAVE_LIBNCURSESW,1,[Define to 1 if system have ncursesw])CURSES=ncursesw],
+	    [AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,1,[Define to 1 if system have ncurses])CURSES=ncurses],
+	        [ AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,1,[Define to 1 if system have curses])CURSES=curses])
+	        ]
+	    )]
+    )
 	AC_CHECK_HEADERS([ncurses.h curses.h])
-	AC_CHECK_HEADERS([$CURSES.h],,CURSES=)
+dnl	AC_CHECK_HEADERS([$CURSES.h],,CURSES=)
 	if test $CURSES; then
 		AC_CHECK_LIB($CURSES,mvvline,[AC_DEFINE(CURS_HAVE_MVVLINE,1,[Define to 1 if system (n)curses have mvvline()])])
 		AC_CHECK_LIB($CURSES,resizeterm,[AC_DEFINE(CURS_HAVE_RESIZETERM,1,[Define to 1 if system (n)curses have wresize()])])

@@ -118,7 +118,7 @@ int xrecv(int sock,char *buf,size_t len,int wait)
 		rc=MIN(rc-2,FETCH16(buf));
 		if(rc<1)return 0;
 		if(rc>=len)rc=len-2;
-		memcpy(buf,buf+2,rc);
+		memmove(buf,buf+2,rc);
 		return rc;
 	}
 	return 0;

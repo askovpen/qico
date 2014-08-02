@@ -112,6 +112,9 @@
 /* Define to 1 if system have ncurses */
 #undef HAVE_LIBNCURSES
 
+/* Define to 1 if system have ncursesw */
+#undef HAVE_LIBNCURSESW
+
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
 
