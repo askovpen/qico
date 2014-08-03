@@ -19,8 +19,8 @@ qico_SOURCES = aso.c binkp.c call.c clserv.c config.c crc.c daemon.c \
 	       flagexp.y flaglex.l
 qctl_SOURCES = qctl.c clserv.c md5.c qslib.c
 qcc_SOURCES = qcc.c clserv.c md5.c qslib.c
-qico_LDADD = @LIBOBJS@ perl.o
-qico_LDFLAGS = @PERLLDFLAGS@
+qico_LDADD = @LIBOBJS@ perl.o @PERLLDFLAGS@
+qico_LDFLAGS = 
 qctl_LDADD = @LIBOBJS@
 qcc_LDADD = @LIBOBJS@
 qcc_LDFLAGS = @QCCLIBS@
