@@ -4,7 +4,7 @@ AC_REVISION([$Id: configure.in,v 1.30 2004/06/19 22:31:57 sisoft Exp $])
 AC_PREREQ(2.53)
 AM_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE([qico],[0.55si])
+AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 
 dnl Checks for programs.
@@ -23,7 +23,7 @@ AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIOCGWINSZ
-AM_SYS_POSIX_TERMIOS
+AC_SYS_POSIX_TERMIOS
 AC_CHECK_HEADERS([stddef.h arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h])
 AC_CHECK_HEADERS([sys/cdefs.h sys/ioctl.h sys/socket.h sys/time.h syslog.h])
 AC_CHECK_HEADERS([termios.h unistd.h utime.h libutil.h libgen.h sys/param.h])
