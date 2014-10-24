@@ -95,42 +95,51 @@ static void getsysinfo()
 
 static void answer_mode(int type)
 {
-	int rc, spd;char *cs;
-	struct sockaddr_in sa;
-	socklen_t ss=sizeof(sa);
-	sts_t sts;
-	if(cfgs(CFG_ROOTDIR)&&ccs[0])chdir(ccs);
-	rnode=xcalloc(1,sizeof(ninfo_t));
-	is_ip=!isatty(0);
-	xstrcpy(ip_id,"ipline",10);
-	rnode->tty=xstrdup(is_ip?(bink?"binkp":"tcpip"):basename(ttyname(0)));
-	rnode->options|=O_INB;
-	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-		printf("can't open log %s!\n",ccs);
-		exit(S_FAILURE);
-	}
-	signal(SIGINT,SIG_IGN);
-	signal(SIGTERM,sigerr);
-	signal(SIGSEGV,sigerr);
-	signal(SIGFPE,sigerr);
-	signal(SIGPIPE,SIG_IGN);
-	IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
-	log_callback=NULL;xsend_cb=NULL;
-	ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
-	if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
-	    else log_callback=vlogs;
+    int rc, spd;char *cs;
+    struct sockaddr_storage addr;
+    socklen_t ss=sizeof(addr);
+    sts_t sts;
+    char ipstr[INET6_ADDRSTRLEN];
+    if(cfgs(CFG_ROOTDIR)&&ccs[0])chdir(ccs);
+    rnode=xcalloc(1,sizeof(ninfo_t));
+    is_ip=!isatty(0);
+    xstrcpy(ip_id,"ipline",10);
+    rnode->tty=xstrdup(is_ip?(bink?"binkp":"tcpip"):basename(ttyname(0)));
+    rnode->options|=O_INB;
+    if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
+        printf("can't open log %s!\n",ccs);
+        exit(S_FAILURE);
+    }
+    signal(SIGINT,SIG_IGN);
+    signal(SIGTERM,sigerr);
+    signal(SIGSEGV,sigerr);
+    signal(SIGFPE,sigerr);
+    signal(SIGPIPE,SIG_IGN);
+    IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
+    log_callback=NULL;xsend_cb=NULL;
+    ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
+    if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
+        else log_callback=vlogs;
 
-	rc=aso_init(cfgs(CFG_ASOOUTBOUND),cfgs(CFG_BSOOUTBOUND),cfgs(CFG_QSTOUTBOUND),cfgal(CFG_ADDRESS)->addr.z);
-	if(!rc) {
-		write_log("No outbound defined");
-		stopit(S_FAILURE);
-	}
+    rc=aso_init(cfgs(CFG_ASOOUTBOUND),cfgs(CFG_BSOOUTBOUND),cfgs(CFG_QSTOUTBOUND),cfgal(CFG_ADDRESS)->addr.z);
+    if(!rc) {
+        write_log("No outbound defined");
+        stopit(S_FAILURE);
+    }
 
-	write_log("answering incoming call");vidle();
-	if(is_ip&&!getpeername(0,(struct sockaddr*)&sa,&ss)) {
-		write_log("remote is %s",inet_ntoa(sa.sin_addr));
-		spd=TCP_SPEED;
-	} else {
+    write_log("answering incoming call");vidle();
+    if(is_ip&&!getpeername(0,(struct sockaddr*)&addr,&ss)) {
+        if (addr.ss_family == AF_INET) {
+            struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+            inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+        } else {
+            struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+            inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
+        }
+        write_log("remote is %s",ipstr);
+        spd=TCP_SPEED;
+    
+    } else {
 		cs=getenv("CONNECT");spd=cs?atoi(cs):0;
 		xfree(connstr);connstr=xstrdup(cs);
 		if(cs&&spd)write_log("*** CONNECT %s",cs);
