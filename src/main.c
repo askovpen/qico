@@ -160,39 +160,41 @@ void stopit(int rc)
 
 RETSIGTYPE sigerr(int sig)
 {
-	signal( sig, SIG_DFL );
-	outbound_done();
-	write_log( "got SIG%s signal", sigs[sig] );
+    signal( sig, SIG_DFL );
+    outbound_done();
+    write_log( "got SIG%s signal", sigs[sig] );
 
-	if ( cfgs( CFG_PIDFILE ) && getpid() == islocked( ccs ))
-		lunlink( ccs );
+    if ( cfgs( CFG_PIDFILE ) && getpid() == islocked( ccs )) {
+        lunlink( ccs );
+    }
 
-	IFPerl( perl_done( 1 ));
-	log_done();
+    IFPerl( perl_done( 1 ));
+    log_done();
 
-	if ( tty_online ) {
-		if ( is_ip )
-			tcp_done();
-		else
-			modem_done();
-	}
+    if ( tty_online ) {
+        if ( is_ip ) {
+            tcp_done();
+        } else {
+            modem_done();
+        }
+    }
 
-	qqreset();
-	sline( "" );
-	title( "" );
-	cls_close( ssock);
-	cls_shutd( lins_sock );
-	cls_shutd( uis_sock );
+    qqreset();
+    sline( "" );
+    title( "" );
+    cls_close( ssock);
+    cls_shutd( lins_sock );
+    cls_shutd( uis_sock );
 
-	switch( sig ) {
-	case SIGSEGV:
-	case SIGFPE:
-	case SIGBUS:
-	case SIGABRT:
-		abort();
-	default:
-		exit( 1 );
-	}
+    switch( sig ) {
+    case SIGSEGV:
+    case SIGFPE:
+    case SIGBUS:
+    case SIGABRT:
+        abort();
+    default:
+        exit( 1 );
+    }
 }
 
 
@@ -201,8 +203,9 @@ static void getsysinfo(void)
     struct utsname uts;
     char tmp[ MAX_STRING + 1 ];
 
-    if ( uname( &uts ))
+    if ( uname( &uts )) {
         return;
+    }
 
     snprintf( tmp, MAX_STRING, "%s-%s (%s)", uts.sysname, uts.release, uts.machine );
     osname = xstrdup( tmp );
@@ -219,8 +222,9 @@ static void answer_mode(int type)
     TIO tio;
     sts_t sts;
 
-    if ( cfgs( CFG_ROOTDIR ) && ccs[0] )
+    if ( cfgs( CFG_ROOTDIR ) && ccs[0] ) {
         chdir( ccs );
+    }
 
     rnode = xcalloc( 1, sizeof( ninfo_t ));
     is_ip = !isatty( 0 );
@@ -246,9 +250,9 @@ static void answer_mode(int type)
     __OUT_INIT
 
     write_log( "answering incoming call" );
-    
+
     vidle();
-    
+
     tty_fd = 0;
     tty_online = TRUE;
     if( is_ip && getpeername( 0, (struct sockaddr*) &sa, &ss ) == 0 ) {
@@ -261,15 +265,16 @@ static void answer_mode(int type)
         spd = cs ? atoi( cs ) : 0;
         xfree( connstr );
         connstr = xstrdup( cs );
-        if ( cs && spd )
+        if ( cs && spd ) {
             strcpy( host, cs );
-        else {
+        } else {
             strcpy( host, "Unknown" );
             spd = DEFAULT_SPEED;
         }
         write_log( "*** CONNECT %s", host );
-        if (( cs = getenv( "CALLER_ID" )) && strcasecmp( cs, "none" ) && strlen( cs ) > 3 )
+        if (( cs = getenv( "CALLER_ID" )) && strcasecmp( cs, "none" ) && strlen( cs ) > 3 ) {
             write_log( "caller-id: %s", cs );
+        }
 
         tio_get( tty_fd, &tty_stio );
         memcpy( &tio, &tty_stio, sizeof( TIO ));
@@ -286,13 +291,14 @@ static void answer_mode(int type)
         fd_set_nonblock( tty_fd, true );
     }
 
-    if ( !tty_gothup )
+    if ( !tty_gothup ) {
         rc = session( SM_INBOUND, type, NULL, spd );
+    }
 
     sline( "Hanging up..." );
-    if ( is_ip )
+    if ( is_ip ) {
         tcp_done();
-    else {
+    } else {
         modem_done();
     }
 
@@ -303,7 +309,7 @@ static void answer_mode(int type)
         sts.flags |= ( Q_WAITA | Q_WAITR | Q_WAITX );
         sts.htime = MAX( timer_set( cci * 60 ), sts.htime );
         write_log( "calls to %s delayed for %d min after successful incoming session",
-            ftnaddrtoa( &rnode->addrs->addr ), cci );
+                   ftnaddrtoa( &rnode->addrs->addr ), cci );
         outbound_setstatus( &rnode->addrs->addr, &sts );
         log_done();
         log_init( cfgs( CFG_LOG ), rnode->tty );
@@ -319,7 +325,7 @@ static void answer_mode(int type)
 int main(int argc, char **argv, char **envp)
 {
     int c, daemon = DM_NONE, rc, sesstype = SESSION_EMSI,
-	        line = 0, call_flags = FC_NORMAL;
+           line = 0, call_flags = FC_NORMAL;
     char *hostname = NULL, *str = NULL;
 
     FTNADDR_T( fa );
@@ -332,96 +338,101 @@ int main(int argc, char **argv, char **envp)
 
     while( (c = getopt( argc, argv, "hI:dfa:ni:c:tTbv" )) != EOF ) {
         switch(c) {
-            case 'c':
-                daemon = DM_CALL;
-                str = optarg;
-                while( str && *str ) {
-                    switch( tolower( *str )) {
-                        case 'n':
-                            call_flags = FC_NORMAL; break;
-                        case 'i':
-                            call_flags |= FC_IMMED; break;
-                        case 'a':
-                            call_flags |= FC_ANY; break;
-                        default:
-                            write_log( "unknown call option: %c", *optarg );
-                            exit( S_FAILURE );
-                    }
-                    str++;
+        case 'c':
+            daemon = DM_CALL;
+            str = optarg;
+            while( str && *str ) {
+                switch( tolower( *str )) {
+                case 'n':
+                    call_flags = FC_NORMAL;
+                    break;
+                case 'i':
+                    call_flags |= FC_IMMED;
+                    break;
+                case 'a':
+                    call_flags |= FC_ANY;
+                    break;
+                default:
+                    write_log( "unknown call option: %c", *optarg );
+                    exit( S_FAILURE );
                 }
-                break;
+                str++;
+            }
+            break;
 
-            case 'i':
-                hostname = xstrdup( optarg );
-                break;
+        case 'i':
+            hostname = xstrdup( optarg );
+            break;
 
-            case 'I':
-                configname = xstrdup( optarg );
-                break;
+        case 'I':
+            configname = xstrdup( optarg );
+            break;
 
-            case 'f':
-                detached = FALSE;
+        case 'f':
+            detached = FALSE;
 
-            case 'd':
-                daemon = DM_DAEMON;
-                break;
+        case 'd':
+            daemon = DM_DAEMON;
+            break;
 
-            case 'a':
-                daemon = DM_ANSWER;
-                sesstype = SESSION_AUTO;
-                if ( !strncasecmp( optarg, "**emsi", 6 )
-                    || !strncasecmp( optarg, "emsi", 4 ))
-                    sesstype = SESSION_EMSI;
+        case 'a':
+            daemon = DM_ANSWER;
+            sesstype = SESSION_AUTO;
+            if ( !strncasecmp( optarg, "**emsi", 6 )
+                    || !strncasecmp( optarg, "emsi", 4 )) {
+                sesstype = SESSION_EMSI;
+            }
 #ifdef WITH_BINKP
-                else if ( !strncasecmp( optarg, "binkp", 5)) {
-                    sesstype = SESSION_BINKP;
-                    bink = 1;
-                }
-                break;
-
-            case 'b':
+            else if ( !strncasecmp( optarg, "binkp", 5)) {
+                sesstype = SESSION_BINKP;
                 bink = 1;
+            }
+            break;
+
+        case 'b':
+            bink = 1;
 #endif
-                break;
+            break;
 
-            case 'n':
-                daemon = DM_NODELIST;
-                break;
+        case 'n':
+            daemon = DM_NODELIST;
+            break;
 
-            case 'T':
-                verbose_config = 1;
+        case 'T':
+            verbose_config = 1;
 
-            case 't':
-                daemon = DM_CONFIG;
-                break;
+        case 't':
+            daemon = DM_CONFIG;
+            break;
 
-            case 'v':
-                u_vers( progname );
-                break;
+        case 'v':
+            u_vers( progname );
+            break;
 
-            default:
-                usage( argv[0] );
+        default:
+            usage( argv[0] );
         }
     }
 
-    if ( !hostname && daemon <= DM_NONE )
+    if ( !hostname && daemon <= DM_NONE ) {
         usage( argv[0] );
+    }
 
     getsysinfo();
     ssock = lins_sock = uis_sock = -1;
 
     rereadconfig( -1 );
-/*
-    if ( !rereadconfig( -1 )) {
-        write_log( "there were some errors parsing '%s', aborting.", configname );
-        exit( S_FAILURE );
-    }
+    /*
+        if ( !rereadconfig( -1 )) {
+            write_log( "there were some errors parsing '%s', aborting.", configname );
+            exit( S_FAILURE );
+        }
 
-    if( !log_init( cfgs( CFG_MASTERLOG ), NULL )) {
-        write_log( "can't open master log '%s', aborting.", ccs );
-        exit( S_FAILURE );
-    }
-*/
+        if( !log_init( cfgs( CFG_MASTERLOG ), NULL )) {
+            write_log( "can't open master log '%s', aborting.", ccs );
+            exit( S_FAILURE );
+        }
+    */
 
     log_done();
 
@@ -443,7 +454,7 @@ int main(int argc, char **argv, char **envp)
         rnode = xcalloc( 1, sizeof( ninfo_t ));
         xstrcpy( ip_id, "ipline", 10 );
         rnode->tty = xstrdup( bink ? "binkp" : "tcpip" );
-        
+
         if( !log_init( cfgs( CFG_LOG ), rnode->tty )) {
             write_log( "can't open log '%s', aborting.", ccs );
             exit( S_FAILURE );
@@ -462,11 +473,13 @@ int main(int argc, char **argv, char **envp)
 
             rc = do_call( &fa, hostname, NULL );
             outbound_unlocknode( &fa, LCK_x );
-        } else
+        } else {
             rc = S_FAILURE;
+        }
 
-        if( rc & S_MASK )
+        if( rc & S_MASK ) {
             write_log( "can't call to %s", ftnaddrtoa( &fa ));
+        }
         outbound_done();
         stopit( rc );
     }
@@ -477,9 +490,9 @@ int main(int argc, char **argv, char **envp)
                 write_log( "can't parse line number '%s'!\n", argv[optind] );
                 exit( S_FAILURE );
             }
-        }
-        else
+        } else {
             line = 0;
+        }
 
         __CLS_CONN
 
@@ -494,28 +507,29 @@ int main(int argc, char **argv, char **envp)
 
             rc = force_call( &fa, line, call_flags );
             outbound_unlocknode( &fa, LCK_x );
-        }
-        else
+        } else {
             rc = S_FAILURE;
+        }
 
-        if( rc & S_MASK )
+        if( rc & S_MASK ) {
             write_log( "can't call to %s", ftnaddrtoa( &fa ));
+        }
         outbound_done();
         stopit( rc );
     }
 
     switch( daemon ) {
-        case DM_DAEMON:
-            daemon_mode();
-            break;
+    case DM_DAEMON:
+        daemon_mode();
+        break;
 
-        case DM_ANSWER:
-            answer_mode( sesstype );
-            break;
+    case DM_ANSWER:
+        answer_mode( sesstype );
+        break;
 
-        case DM_NODELIST:
-            nodelist_compile( 1 );
-            break;
+    case DM_NODELIST:
+        nodelist_compile( 1 );
+        break;
     }
     return S_OK;
 }

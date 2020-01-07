@@ -14,34 +14,34 @@
 #define __SLISTS_H__
 
 typedef struct _slist_t {
-	char *str;
-	struct _slist_t *next;
+    char *str;
+    struct _slist_t *next;
 } slist_t;
 
 typedef struct _aslist_t {
-	char *str;
-	char *arg;
-	struct _aslist_t *next;
+    char *str;
+    char *arg;
+    struct _aslist_t *next;
 } aslist_t;
 
 typedef struct _falist_t {
-	ftnaddr_t addr;
-	struct _falist_t *next;
+    ftnaddr_t addr;
+    struct _falist_t *next;
 } falist_t;
 
 typedef struct _faslist_t {
-	ftnaddr_t addr;
-	char *str;
-	struct _faslist_t *next;
+    ftnaddr_t addr;
+    char *str;
+    struct _faslist_t *next;
 } faslist_t;
 
 typedef struct _flist_t {
-	struct _flist_t *next;
-	char *tosend, *sendas, kill;
-	FILE *lo;
-	off_t loff;
-	int type;
-	int suspend;
+    struct _flist_t *next;
+    char *tosend, *sendas, kill;
+    FILE *lo;
+    off_t loff;
+    int type;
+    int suspend;
 } flist_t;
 
 slist_t		*slist_add(slist_t **, const char *);

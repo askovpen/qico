@@ -1,7 +1,7 @@
 /**********************************************************
  * File: des.h
  * Created at Sat Jun 30 23:28:31 2001 by lev // lev@serebryakov.spb.ru
- * 
+ *
  * $Id: des.h,v 1.1 2001/07/05 19:55:12 lev Exp $
  **********************************************************/
 #ifndef __DES_H__
@@ -9,7 +9,7 @@
 
 /* Key and encriptyiion/decryption context */
 typedef struct _DESCONTEXT {
-	UINT32 key[32];
+    UINT32 key[32];
 } descontext_t;
 
 

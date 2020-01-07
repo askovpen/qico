@@ -1,7 +1,7 @@
 /**********************************************************
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
- * 
+ *
  * $Id: qipcng.h,v 1.8 2002/03/16 15:59:38 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
@@ -12,107 +12,107 @@
 
 /* Stream DES context */
 typedef struct _SESSENCCONTEXT {
-	CHAR iv[8];
-	descontext_t cx;
+    CHAR iv[8];
+    descontext_t cx;
 } sessenccontext_t;
 
 /* One UI client -- next one, socket (and it is unique ID), encryption context */
 typedef struct _UICLIENT {
-	struct _UICLIENT *next;
-	int socket;
-	sessenccontext_t cx;
+    struct _UICLIENT *next;
+    int socket;
+    sessenccontext_t cx;
 } uiclient_t;
 
 /* One UI <-mask-> Line relation */
 typedef struct _LINE2UI {
-	struct _LINE2UI *next;
-	uiclient_t *client;
-	UINT32 mask;
+    struct _LINE2UI *next;
+    uiclient_t *client;
+    UINT32 mask;
 } line2ui_t;
 
 /* State of file transfer */
 typedef struct _TRANSFERSTATE {
-	CHAR phase;				/* Phase of process */
+    CHAR phase;				/* Phase of process */
 #define TXRX_PHASE_HSHAKE	'h'		/* Handhaske in progress */
 #define TXRX_PHASE_LOOP		'l'		/* File loop */
 #define TXRX_PHASE_FINISH	'f'		/* Finishing */
 #define TXRX_PHASE_EOB		'\x00'	/* Batch was finished or not started yet */
-	CHAR filephase;			/* Phase of LOOP */
+    CHAR filephase;			/* Phase of LOOP */
 #define TXRX_FILE_HSHAKE	'h'		/* File handshake in progress */
 #define TXRX_FILE_DATA		'd'		/* Data sending/receiving */
 #define TXRX_FILE_EOF		'\x00'	/* No files in processing */
-	CHAR lastfilestat;		/* Last file status */
+    CHAR lastfilestat;		/* Last file status */
 #define TXRX_FILESTAT_OK			'o'		/* Ok */
 #define TXRX_FILESTAT_SKIPPED		's'		/* Skipped */
 #define TXRX_FILESTAT_REFUSED		'r'		/* Refuse */
 #define TXRX_FILESTAT_ERROR			'e'		/* Error */
-	UINT32 maxblock;		/* Maximum block size */
-	UINT32 curblock;		/* Current block size */
-	UINT32 crcsize;			/* Size of CRC control sum in bits */
-	UINT32 filesize;		/* Current file size */
-	UINT32 totalsize;		/* Total transfer size */
-	UINT32 filepos;			/* Current file pos (bytes have been sent) */
-	UINT32 totalpos;		/* Total stream pos (bytes have been sent) */
-	UINT32 filenum;			/* Number of current file, from 1 */
-	UINT32 totalfiles;		/* Number of files to transfer */
-	UINT32 filestarted;		/* UNIX time of file transfer start time */
-	UINT32 transferstarted;	/* UNIX time of transfer starts */
-	CHAR *file;				/* Name of current file */
+    UINT32 maxblock;		/* Maximum block size */
+    UINT32 curblock;		/* Current block size */
+    UINT32 crcsize;			/* Size of CRC control sum in bits */
+    UINT32 filesize;		/* Current file size */
+    UINT32 totalsize;		/* Total transfer size */
+    UINT32 filepos;			/* Current file pos (bytes have been sent) */
+    UINT32 totalpos;		/* Total stream pos (bytes have been sent) */
+    UINT32 filenum;			/* Number of current file, from 1 */
+    UINT32 totalfiles;		/* Number of files to transfer */
+    UINT32 filestarted;		/* UNIX time of file transfer start time */
+    UINT32 transferstarted;	/* UNIX time of transfer starts */
+    CHAR *file;				/* Name of current file */
 } txrxstate_t;
 
 /* Information about one line */
 typedef struct _LINESTATE {
-	struct _LINESTATE *next;
-	CHAR phase;				/* Phase of session */
+    struct _LINESTATE *next;
+    CHAR phase;				/* Phase of session */
 #define SESS_PHASE_NOPROC		'\x00'
 #define SESS_PHASE_BEGIN		'b'
 #define SESS_PHASE_CONNECT		'c'
 #define SESS_PHASE_HSHAKEOUT	'o'
 #define SESS_PHASE_HSHAKEIN		'i'
 #define SESS_PHASE_INPROCESS	'p'
-	CHAR mode;
-	UINT32 flags;			/* Different flags, see opts.h */
-	UINT32 type;			/* Type of session */
-	UINT32 proto;			/* Used protocol */
-	txrxstate_t send;
-	txrxstate_t recv;
-	ninfo_t remote;
-	CHAR *tty;
-	UINT32 speed;
-	CHAR *connect;
-	CHAR *cid;
-	CHAR *log_buffer[LOG_BUFFER_SIZE];
-	CHAR *chat_buffer[LOG_BUFFER_SIZE];
-	/* Internal variables */
-	int log_head,log_tail,chat_head,chat_tail;
-	pid_t pid;
-	struct sockaddr_in from;
-	time_t lastevent;
-	anylist_t *clients;		/* Head of registered for this line clients */
+    CHAR mode;
+    UINT32 flags;			/* Different flags, see opts.h */
+    UINT32 type;			/* Type of session */
+    UINT32 proto;			/* Used protocol */
+    txrxstate_t send;
+    txrxstate_t recv;
+    ninfo_t remote;
+    CHAR *tty;
+    UINT32 speed;
+    CHAR *connect;
+    CHAR *cid;
+    CHAR *log_buffer[LOG_BUFFER_SIZE];
+    CHAR *chat_buffer[LOG_BUFFER_SIZE];
+    /* Internal variables */
+    int log_head,log_tail,chat_head,chat_tail;
+    pid_t pid;
+    struct sockaddr_in from;
+    time_t lastevent;
+    anylist_t *clients;		/* Head of registered for this line clients */
 } linestate_t;
 
 /* Generic event structure -- for typecasting */
 typedef struct _EVTANY {
-	UINT32 fulllength;			/* Full length of following data  */
-	CHAR data[];				/* Data for event */
+    UINT32 fulllength;			/* Full length of following data  */
+    CHAR data[];				/* Data for event */
 } evtany_t;
 
 /* Line-to-manager and manager-to-line event structure */
 typedef struct _EVTLAM {
-	UINT32 fulllength;			/* Full length of following data  */
-	CHAR password[8];			/* Password, zero-padded */
-	/* Retranslated data begins here */
-	UINT32 pid;					/* Line PID */
-	CHAR tty[16];				/* '' if it is IP line (dynamic), name of tty if fixed (tty) one */
-	UINT8 type;					/* See EVTL2M_XXXX / EVTM2L_XXXX */
-	CHAR data[];				/* Data for event */
+    UINT32 fulllength;			/* Full length of following data  */
+    CHAR password[8];			/* Password, zero-padded */
+    /* Retranslated data begins here */
+    UINT32 pid;					/* Line PID */
+    CHAR tty[16];				/* '' if it is IP line (dynamic), name of tty if fixed (tty) one */
+    UINT8 type;					/* See EVTL2M_XXXX / EVTM2L_XXXX */
+    CHAR data[];				/* Data for event */
 } evtlam_t;
 
 /* Manager-to-UI and UI-to-manager event structure */
 typedef struct _EVTUAM {
-	UINT32 fulllength;			/* Full length of following data  */
-	UINT8 type;					/* See EVTU2M_XXXX / EVTM2U_XXXX */
-	CHAR data[];				/* Data for event */
+    UINT32 fulllength;			/* Full length of following data  */
+    UINT8 type;					/* See EVTU2M_XXXX / EVTM2U_XXXX */
+    CHAR data[];				/* Data for event */
 } evtlau_t;
 
 
@@ -252,7 +252,7 @@ typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 /* Signature: "a" -- ADDRESS  */
 #define EVTU2M_NODE_QUEUE			0x57	/* Get list of files for node */
 /* Signature: "a" -- ADDRESS  */
-                                      
+
 #define EVTU2M_GROUP_CHAT			0x60	/* Chat-related eventts */
 #define EVTU2M_CHAT_INIT			0x61	/* Start chat with remote */
 /* Signature: "d" -- PID OF LINE  */
@@ -317,5 +317,5 @@ typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 #define EVTM2U_NODE_QUEUE_STRAT		0x52	/* List of files for node starts */
 #define EVTM2U_NODE_QUEUE_ITEM		0x53	/* One file */
 #define EVTM2U_NODE_QUEUE_FINISH	0x54	/* List of files for node finihs */
-                                      
+
 #endif

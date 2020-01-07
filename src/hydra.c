@@ -256,13 +256,14 @@ static struct _h_flags h_flags[] = {
     { "C32", HOPT_CRC32   },
     { "DEV", HOPT_DEVICE  },
     { "FPT", HOPT_FPT     },
-    { NULL , 0x0L         }
+    { NULL, 0x0L         }
 };
 
 
 /*---------------------------------------------------------------------------*/
 static void hydra_msgdev(byte *data, word len)
-{       /* text is already NUL terminated by calling func hydra_devrecv() */
+{
+    /* text is already NUL terminated by calling func hydra_devrecv() */
     len = len;
     write_log( "HydraMsg: %s",data );
 }/*hydra_msgdev()*/
@@ -291,41 +292,43 @@ static  struct _h_dev h_dev[] = {
     { "CON", hydra_chat   },                /* text to console (chat)    */
     { "PRN", NULL         },                /* data to printer           */
     { "ERR", NULL         },                /* text to error output      */
-    { NULL , NULL         }
+    { NULL, NULL         }
 };
 
 
 /*---------------------------------------------------------------------------*/
 boolean hydra_devfree(void)
 {
-    if ( devtxstate || !( txoptions & HOPT_DEVICE ) || txState >= HTX_END )
-        return (false);                      /* busy or not allowed       */
-    else
-        return (true);                       /* allowed to send a new pkt */
+    if ( devtxstate || !( txoptions & HOPT_DEVICE ) || txState >= HTX_END ) {
+        return (false);    /* busy or not allowed       */
+    } else {
+        return (true);    /* allowed to send a new pkt */
+    }
 }/*hydra_devfree()*/
 
 
 /*---------------------------------------------------------------------------*/
 boolean hydra_devsend(char *dev, byte *data, word len)
 {
-    if ( !dev || !data || !len || !hydra_devfree() )
+    if ( !dev || !data || !len || !hydra_devfree() ) {
         return (false);
+    }
 
 #ifndef HYDRA8K16K
     strncpy( devtxdev, dev, H_FLAGLEN );
     devtxdev[H_FLAGLEN] = '\0';
-#else    
+#else
     xstrcpy( devtxdev, dev, H_FLAGLEN + 1);
 #endif
 
     strupr( devtxdev );
     devtxbuf = data;
-    
+
 #ifndef HYDRA8K16K
     devtxlen = (word) (( len > H_MAXBLKLEN ) ? H_MAXBLKLEN : len );
-#else    
+#else
     devtxlen= (word) (( len > H_MAXBLKLEN( hydra_modifier )) ?
-        H_MAXBLKLEN( hydra_modifier ) : len );
+                      H_MAXBLKLEN( hydra_modifier ) : len );
 #endif
 
     devtxid++;
@@ -334,8 +337,9 @@ boolean hydra_devsend(char *dev, byte *data, word len)
     devtxstate   = HTD_DATA;
 
     /* special for chat, only prolong life if our side keeps typing! */
-    if ( chattimer > 1L && !strcmp( devtxdev, "CON" ) && txState == HTX_REND )
+    if ( chattimer > 1L && !strcmp( devtxdev, "CON" ) && txState == HTX_REND ) {
         braindead = h_timer_set( H_BRAINDEAD );
+    }
 
     return (true);
 }/*hydra_devsend()*/
@@ -374,9 +378,9 @@ static char* hydra_packet_str(const char c)
     if ( i < 0 || i >= h_packets_len ) {
         snprintf( err, ERR_LEN, "'%c' (Unknown)", c );
     } else {
-        if ( verboseLog )
+        if ( verboseLog ) {
             r = h_packets[ i ];
-        else {
+        } else {
             snprintf( err, ERR_LEN, "'%c'", c );
         }
     }
@@ -394,9 +398,9 @@ static char* hydra_format_str(const char c)
     if ( i < 0 || i >= h_formats_len ) {
         snprintf( err, ERR_LEN, "'%c' (Unknown)", c );
     } else {
-        if ( verboseLog )
+        if ( verboseLog ) {
             r = h_formats[ i ];
-        else {
+        } else {
             snprintf( err, ERR_LEN, "'%c'", c );
         }
     }
@@ -412,8 +416,9 @@ static char* hydra_tx_state_str(const int c)
 
     if ( c < 0 || c >= h_tx_states_len ) {
         snprintf( err, ERR_LEN, "'%d' (Unknown)", c );
-    } else
+    } else {
         r = h_tx_states[ c ];
+    }
     return r;
 }
 
@@ -426,8 +431,9 @@ static char* hydra_rx_state_str(const int c)
 
     if ( c < 0 || c >= h_rx_states_len ) {
         snprintf( err, ERR_LEN, "'%d' (Unknown)", c );
-    } else
+    } else {
         r = h_rx_states[ c ];
+    }
     return r;
 }
 
@@ -440,8 +446,9 @@ static char* hydra_dpkttx_state_str(const int c)
 
     if ( c < 0 || c >= h_dpkttx_states_len ) {
         snprintf( err, ERR_LEN, "'%d' (Unknown)", c );
-    } else
+    } else {
         r = h_dpkttx_states[ c ];
+    }
     return r;
 }
 
@@ -505,7 +512,7 @@ static char *hydra_putword(void *buf, word val)
 
     b[0] = (byte) val;
     b[1] = (byte) ( val >> 8 );
-	    
+
     return buf;
 }
 
@@ -546,8 +553,9 @@ static void put_flags(char *buf, struct _h_flags flags[], long val)
     p = buf;
     for( i = 0; flags[i].val; i++ ) {
         if ( val & flags[i].val ) {
-            if ( p > buf )
+            if ( p > buf ) {
                 *p++ = ',';
+            }
             strcpy( p, flags[i].str );
             p += H_FLAGLEN;
         }
@@ -576,32 +584,49 @@ static dword get_flags(char *buf, struct _h_flags flags[])
         }
     }
 
-        return (val);
+    return (val);
 }/*get_flags()*/
 
 
 /*---------------------------------------------------------------------------*/
 static int hydra_adjust_blklen(int i)
 {
-    if      ( i <=  64 )  i =   64;
-    else if ( i <= 128 )  i =  128;
-    else if ( i <= 256 )  i =  256;
-    else if ( i <= 512 )  i =  512;
+    if      ( i <=  64 ) {
+        i =   64;
+    } else if ( i <= 128 ) {
+        i =  128;
+    } else if ( i <= 256 ) {
+        i =  256;
+    } else if ( i <= 512 ) {
+        i =  512;
+    }
 
 #ifndef HYDRA8K16K
-    else                  i = 1024;
+    else {
+        i = 1024;
+    }
 #else
-    else if ( i <= 1024 ) i = 1024;
-    else if ( i <= 2048 ) i = 2048;
-    else if ( i <= 4096 ) i = 4096;
-    else                  i = 8192;
+    else if ( i <= 1024 ) {
+        i = 1024;
+    } else if ( i <= 2048 ) {
+        i = 2048;
+    } else if ( i <= 4096 ) {
+        i = 4096;
+    } else {
+        i = 8192;
+    }
 
-    if      ( hydra_modifier == 8 && i > 8192 ) i = 8192;
-    else if ( hydra_modifier == 4 && i > 4096 )	i = 4096;
-    else if ( hydra_modifier == 2 && i > 2048 )	i = 2048;
-    else if ( hydra_modifier == 1 && i > 1024 ) i = 1024;
+    if      ( hydra_modifier == 8 && i > 8192 ) {
+        i = 8192;
+    } else if ( hydra_modifier == 4 && i > 4096 )	{
+        i = 4096;
+    } else if ( hydra_modifier == 2 && i > 2048 )	{
+        i = 2048;
+    } else if ( hydra_modifier == 1 && i > 1024 ) {
+        i = 1024;
+    }
 #endif
-    
+
     return i;
 
 }/* hydra_adjust_blklen() */
@@ -613,15 +638,16 @@ static byte *put_binbyte(register byte *p, register byte c)
     register byte n;
 
     n = c;
-    if (txoptions & HOPT_HIGHCTL)
-       n &= 0x7f;
+    if (txoptions & HOPT_HIGHCTL) {
+        n &= 0x7f;
+    }
 
     if (n == H_DLE ||
-        ((txoptions & HOPT_XONXOFF) && (n == XON || n == XOFF)) ||
-        ((txoptions & HOPT_TELENET) && n == '\r' && txLastc == '@') ||
-        ((txoptions & HOPT_CTLCHRS) && (n < 32 || n == 127))) {
-       *p++ = H_DLE;
-       c ^= 0x40;
+            ((txoptions & HOPT_XONXOFF) && (n == XON || n == XOFF)) ||
+            ((txoptions & HOPT_TELENET) && n == '\r' && txLastc == '@') ||
+            ((txoptions & HOPT_CTLCHRS) && (n < 32 || n == 127))) {
+        *p++ = H_DLE;
+        c ^= 0x40;
     }
 
     *p++ = c;
@@ -637,14 +663,17 @@ static int hydra_get_timeout(void)
     int to = timeOut;
     tnow = h_timer_get();
 
-    if ( h_timer_running( braindead ) && !h_timer_expired_agl( braindead, tnow ))
+    if ( h_timer_running( braindead ) && !h_timer_expired_agl( braindead, tnow )) {
         to = MIN( to, timer_rest( braindead ));
+    }
 
-    if ( h_timer_running( txtimer ) && !h_timer_expired_agl( txtimer, tnow ))
+    if ( h_timer_running( txtimer ) && !h_timer_expired_agl( txtimer, tnow )) {
         to = MIN( to, timer_rest( txtimer ));
+    }
 
-    if ( h_timer_running( devtxtimer ) && !h_timer_expired_agl( devtxtimer, tnow ))
+    if ( h_timer_running( devtxtimer ) && !h_timer_expired_agl( devtxtimer, tnow )) {
         to = MIN( to, timer_rest( devtxtimer ));
+    }
 
     return MAX( 1, to );
 }
@@ -656,14 +685,14 @@ static int hydra_check_timers(void)
     tnow = h_timer_get();
 
     switch( tty_gothup ) {
-        case HUP_LINE:
-            return H_CARRIER;
+    case HUP_LINE:
+        return H_CARRIER;
 
-        case HUP_NONE:
-            break;
+    case HUP_NONE:
+        break;
 
-        default:
-            return H_SYSABORT;
+    default:
+        return H_SYSABORT;
     }
 
     if ( chattimer < 2 && txState == HTX_REND && rxState == HRX_DONE ) {
@@ -689,7 +718,7 @@ static int hydra_check_timers(void)
     return (H_NOPKT);
 }
 
-           	
+
 #ifdef NEED_DEBUG
 /*---------------------------------------------------------------------------*/
 void debugTransmittedPkt(int type, int crc32, word len, byte format, dword crcDebug)
@@ -700,84 +729,90 @@ void debugTransmittedPkt(int type, int crc32, word len, byte format, dword crcDe
     int buflen;
 
     switch (type) {
-        case HPKT_START:
-             strcat( buf1, "START" );
-             break;
+    case HPKT_START:
+        strcat( buf1, "START" );
+        break;
 
-        case HPKT_INIT:
-             s1 = ((char *) txbufin) + ((int) strlen((char *) txbufin)) + 1;
-             s2 = s1 + ((int) strlen(s1)) + 1;
-             s3 = s2 + ((int) strlen(s2)) + 1;
-             s4 = s3 + ((int) strlen(s3)) + 1;
-             sprintf( buf1, "INIT (appinfo='%s')", (char *) txbufin );
-             sprintf( buf2, "(can='%s'  want='%s'  options='%s'  pktprefix='%s')",
+    case HPKT_INIT:
+        s1 = ((char *) txbufin) + ((int) strlen((char *) txbufin)) + 1;
+        s2 = s1 + ((int) strlen(s1)) + 1;
+        s3 = s2 + ((int) strlen(s2)) + 1;
+        s4 = s3 + ((int) strlen(s3)) + 1;
+        sprintf( buf1, "INIT (appinfo='%s')", (char *) txbufin );
+        sprintf( buf2, "(can='%s'  want='%s'  options='%s'  pktprefix='%s')",
                  s1, s2, s3, s4 );
-             break;
+        break;
 
-        case HPKT_INITACK:
-             strcat( buf1, "INITACK");
-             break;
+    case HPKT_INITACK:
+        strcat( buf1, "INITACK");
+        break;
 
-        case HPKT_FINFO:
-             sprintf( buf1, "FINFO ('%s')", txbufin );
-             break;
-        
-        case HPKT_FINFOACK:
-             if ( rxfd ) {
-                 if (rxPos > 0L)    s1 = "Resume";
-                 else               s1 = "BoF";
-             }
-             else if (rxPos == -1L) s1 = "Have";
-             else if (rxPos == -2L) s1 = "Skip";
-             else                   s1 = "EoB";
-             sprintf( buf1, "FINFOACK (pos=%ld %s  rxstate=%s)"/*  rxfd=%d)"*/,
+    case HPKT_FINFO:
+        sprintf( buf1, "FINFO ('%s')", txbufin );
+        break;
+
+    case HPKT_FINFOACK:
+        if ( rxfd ) {
+            if (rxPos > 0L) {
+                s1 = "Resume";
+            } else {
+                s1 = "BoF";
+            }
+        } else if (rxPos == -1L) {
+            s1 = "Have";
+        } else if (rxPos == -2L) {
+            s1 = "Skip";
+        } else {
+            s1 = "EoB";
+        }
+        sprintf( buf1, "FINFOACK (pos=%ld %s  rxstate=%s)"/*  rxfd=%d)"*/,
                  rxPos,s1, hydra_rx_state_str( rxState ) /* ,rxfd */);
-             break;
-        
-        case HPKT_DATA:
-             sprintf( buf1, "DATA (ofs=%ld  len=%d)",
+        break;
+
+    case HPKT_DATA:
+        sprintf( buf1, "DATA (ofs=%ld  len=%d)",
                  hydra_getlong( txbufin ), (int) (len - 5));
-             break;
+        break;
 
-        case HPKT_DATAACK:
-             sprintf( buf1, "DATAACK (ofs=%ld)", hydra_getlong( txbufin ));
-             break;
+    case HPKT_DATAACK:
+        sprintf( buf1, "DATAACK (ofs=%ld)", hydra_getlong( txbufin ));
+        break;
 
-        case HPKT_RPOS:
-             sprintf( buf1, "RPOS (pos=%ld%s  blklen=%ld  syncid=%ld)",
+    case HPKT_RPOS:
+        sprintf( buf1, "RPOS (pos=%ld%s  blklen=%ld  syncid=%ld)",
                  rxPos, rxPos < 0L ? " Skip" : "",
                  hydra_getlong( txbufin + (LONGx1) ), rxsyncid );
-             break;
+        break;
 
-        case HPKT_EOF:
-             sprintf( buf1, "EOF (ofs=%ld%s)",
+    case HPKT_EOF:
+        sprintf( buf1, "EOF (ofs=%ld%s)",
                  txPos, txPos < 0L ? " Skip" : "" );
-             break;
+        break;
 
-        case HPKT_EOFACK:
-             strcat( buf1, "EOFACK" );
-             break;
+    case HPKT_EOFACK:
+        strcat( buf1, "EOFACK" );
+        break;
 
-        case HPKT_IDLE:
-             strcat( buf1, "IDLE" );
-             break;
+    case HPKT_IDLE:
+        strcat( buf1, "IDLE" );
+        break;
 
-        case HPKT_END:
-             strcat( buf1, "END" );
-             break;
+    case HPKT_END:
+        strcat( buf1, "END" );
+        break;
 
-        case HPKT_DEVDATA:
-             sprintf( buf1, "DEVDATA (id=%ld  dev='%s'  len=%u)",
+    case HPKT_DEVDATA:
+        sprintf( buf1, "DEVDATA (id=%ld  dev='%s'  len=%u)",
                  devtxid, devtxdev, devtxlen );
-             break;
+        break;
 
-        case HPKT_DEVDACK:
-             sprintf( buf1, "DEVDACK (id=%ld)", hydra_getlong( rxBuf ));
-             break;
+    case HPKT_DEVDACK:
+        sprintf( buf1, "DEVDACK (id=%ld)", hydra_getlong( rxBuf ));
+        break;
 
-        default: /* This couldn't possibly happen! ;-) */
-             strcat( buf1, "**None**" );
-             break;
+    default: /* This couldn't possibly happen! ;-) */
+        strcat( buf1, "**None**" );
+        break;
     }
 
     buflen = strlen( buf1 );
@@ -786,21 +821,23 @@ void debugTransmittedPkt(int type, int crc32, word len, byte format, dword crcDe
     s2 = HPS( type );
 
     DEBUG(('H',2,"txpkt %s%s(crc%d:%08x format=%s  type=%s  len=%d)",
-        buflen < 9 ?  buf1 : "",
-        buflen < 9 ?  " " : "",
-        crc32 ? 32 : 16, crcDebug,
-        s1, s2, (word) len - 1));
+           buflen < 9 ?  buf1 : "",
+           buflen < 9 ?  " " : "",
+           crc32 ? 32 : 16, crcDebug,
+           s1, s2, (word) len - 1));
 
     /* xfree( s2 );
     xfree( s1 ); */
 
-    if ( buflen > 8 )
+    if ( buflen > 8 ) {
         DEBUG(('H',3,"  -> %s", buf1));
-    
-    if ( buf2[0] )
+    }
+
+    if ( buf2[0] ) {
         DEBUG(('H',3,"  -> %s", buf2));
+    }
     DEBUG(('H',4,"now: %08x, rxtimer: %08x, txtimer: %08x, braindead: %d",
-        tnow, rxtimer, txtimer, tnow - braindead));
+           tnow, rxtimer, txtimer, tnow - braindead));
 }
 #endif
 
@@ -820,31 +857,33 @@ static void txpkt(register word len, int type)
     txbufin[len++] = type;
 
     switch (type) {
-        case HPKT_START:
-        case HPKT_INIT:
-        case HPKT_INITACK:
-        case HPKT_END:
-        case HPKT_IDLE:
-             format = HCHR_HEXPKT;
-             break;
+    case HPKT_START:
+    case HPKT_INIT:
+    case HPKT_INITACK:
+    case HPKT_END:
+    case HPKT_IDLE:
+        format = HCHR_HEXPKT;
+        break;
 
-        default:
-             /* COULD do smart format selection depending on data and options! */
-             if (txoptions & HOPT_HIGHBIT) {
-                if ((txoptions & HOPT_CTLCHRS) && (txoptions & HOPT_CANUUE))
-                   format = HCHR_UUEPKT;
-                else if (txoptions & HOPT_CANASC)
-                   format = HCHR_ASCPKT;
-                else
-                   format = HCHR_HEXPKT;
-             }
-             else
-                format = HCHR_BINPKT;
-             break;
+    default:
+        /* COULD do smart format selection depending on data and options! */
+        if (txoptions & HOPT_HIGHBIT) {
+            if ((txoptions & HOPT_CTLCHRS) && (txoptions & HOPT_CANUUE)) {
+                format = HCHR_UUEPKT;
+            } else if (txoptions & HOPT_CANASC) {
+                format = HCHR_ASCPKT;
+            } else {
+                format = HCHR_HEXPKT;
+            }
+        } else {
+            format = HCHR_BINPKT;
+        }
+        break;
     }
 
-    if (format != HCHR_HEXPKT && (txoptions & HOPT_CRC32))
+    if (format != HCHR_HEXPKT && (txoptions & HOPT_CRC32)) {
         crc32 = true;
+    }
 
     if (crc32) {
         dword crc = (~(crc32block(txbufin,len)));
@@ -875,59 +914,60 @@ static void txpkt(register word len, int type)
     *out++ = format;
 
     switch (format) {
-        case HCHR_HEXPKT:
-             for (; len > 0; len--, in++) {
-                 if (*in & 0x80) {
-                    *out++ = '\\';
-                    *out++ = hexdigitslower[((*in) >> 4) & 0x0f];
-                    *out++ = hexdigitslower[(*in) & 0x0f];
-                 }
-                 else if (*in < 32 || *in == 127) {
-                    *out++ = H_DLE;
-                    *out++ = (*in) ^ 0x40;
-                 }
-                 else if (*in == '\\') {
-                    *out++ = '\\';
-                    *out++ = '\\';
-                 }
-                 else
-                    *out++ = *in;
-             }
-             break;
+    case HCHR_HEXPKT:
+        for (; len > 0; len--, in++) {
+            if (*in & 0x80) {
+                *out++ = '\\';
+                *out++ = hexdigitslower[((*in) >> 4) & 0x0f];
+                *out++ = hexdigitslower[(*in) & 0x0f];
+            } else if (*in < 32 || *in == 127) {
+                *out++ = H_DLE;
+                *out++ = (*in) ^ 0x40;
+            } else if (*in == '\\') {
+                *out++ = '\\';
+                *out++ = '\\';
+            } else {
+                *out++ = *in;
+            }
+        }
+        break;
 
-        case HCHR_BINPKT:
-             for (; len > 0; len--)
-                 out = put_binbyte(out,*in++);
-             break;
+    case HCHR_BINPKT:
+        for (; len > 0; len--) {
+            out = put_binbyte(out,*in++);
+        }
+        break;
 
-        case HCHR_ASCPKT:
-             for (n = c = 0; len > 0; len--) {
-                 c |= (word) ((*in++) << n);
-                 out = put_binbyte(out,c & 0x7f);
-                 c >>= 7;
-                 if (++n >= 7) {
-                    out = put_binbyte(out,c & 0x7f);
-                    n = c = 0;
-                 }
-             }
-             if (n > 0)
+    case HCHR_ASCPKT:
+        for (n = c = 0; len > 0; len--) {
+            c |= (word) ((*in++) << n);
+            out = put_binbyte(out,c & 0x7f);
+            c >>= 7;
+            if (++n >= 7) {
                 out = put_binbyte(out,c & 0x7f);
-             break;
+                n = c = 0;
+            }
+        }
+        if (n > 0) {
+            out = put_binbyte(out,c & 0x7f);
+        }
+        break;
 
-        case HCHR_UUEPKT:
-             for ( ; len >= 3; in += 3, len -= (word) 3) {
-                 *out++ = h_uuenc(in[0] >> 2);
-                 *out++ = h_uuenc(((in[0] << 4) & 0x30) | ((in[1] >> 4) & 0x0f));
-                 *out++ = h_uuenc(((in[1] << 2) & 0x3c) | ((in[2] >> 6) & 0x03));
-                 *out++ = h_uuenc(in[2] & 0x3f);
-             }
-             if (len > 0) {
-                *out++ = h_uuenc(in[0] >> 2);
-                *out++ = h_uuenc(((in[0] << 4) & 0x30) | ((in[1] >> 4) & 0x0f));
-                if (len == 2)
-                   *out++ = h_uuenc((in[1] << 2) & 0x3c);
-             }
-             break;
+    case HCHR_UUEPKT:
+        for ( ; len >= 3; in += 3, len -= (word) 3) {
+            *out++ = h_uuenc(in[0] >> 2);
+            *out++ = h_uuenc(((in[0] << 4) & 0x30) | ((in[1] >> 4) & 0x0f));
+            *out++ = h_uuenc(((in[1] << 2) & 0x3c) | ((in[2] >> 6) & 0x03));
+            *out++ = h_uuenc(in[2] & 0x3f);
+        }
+        if (len > 0) {
+            *out++ = h_uuenc(in[0] >> 2);
+            *out++ = h_uuenc(((in[0] << 4) & 0x30) | ((in[1] >> 4) & 0x0f));
+            if (len == 2) {
+                *out++ = h_uuenc((in[1] << 2) & 0x3c);
+            }
+        }
+        break;
     }
 
     *out++ = H_DLE;
@@ -942,26 +982,27 @@ static void txpkt(register word len, int type)
     /* Well be done in real transmit code */
     for (in = (byte *) txpktprefix; *in; in++) {
         switch (*in) {
-            case 221: /* transmit break signal for one second */
-                      tty_send_break();
-                      break;
-            
-            case 222: /* delay one second before next character */
-                      qsleep( 1000 );
-                      break;
+        case 221: /* transmit break signal for one second */
+            tty_send_break();
+            break;
 
-            case 223: /* transmit a NULL (ASCII 0) character */
-                      PUTCHAR(0);
-                      break;
-            
-            default:  PUTCHAR(*in);
-                      break;
+        case 222: /* delay one second before next character */
+            qsleep( 1000 );
+            break;
+
+        case 223: /* transmit a NULL (ASCII 0) character */
+            PUTCHAR(0);
+            break;
+
+        default:
+            PUTCHAR(*in);
+            break;
         }
     }
 
     PUTBLK( txBuf, (word) (out - txBuf) );
 #endif
-    
+
     hytxb.pqueue = xrealloc( hytxb.pqueue, sizeof( HYPKT ) * ( hytxb.npkts + 1 ));
     hytxb.pqueue[hytxb.npkts].len = (out - txBuf);
     hytxb.pqueue[hytxb.npkts].pkt = (byte *) xmalloc( hytxb.pqueue[hytxb.npkts].len );
@@ -983,11 +1024,12 @@ static int hydra_txpkt(void)
         if ( hytxb.npkts ) {			/* there are unsent packets */
             for( i = 0; i < hytxb.npkts; i++ ) {
                 if ( hytxb.pqueue[i].pkt ) {
-                    if ( hytxb.pqueue[i].len + hytxb.tx_left > hytxb.tx_size )
+                    if ( hytxb.pqueue[i].len + hytxb.tx_left > hytxb.tx_size ) {
                         break;
+                    }
 
                     memcpy( (void *) (hytxb.tx_buf + hytxb.tx_left),
-                        hytxb.pqueue[i].pkt, hytxb.pqueue[i].len );
+                            hytxb.pqueue[i].pkt, hytxb.pqueue[i].len );
                     hytxb.tx_left += hytxb.pqueue[i].len;
                     xfree( hytxb.pqueue[i].pkt );
                     DEBUG(('H',4,"put pkt to tx buf, %d", hytxb.pqueue[i].len));
@@ -1001,12 +1043,14 @@ static int hydra_txpkt(void)
         }
     }
 
-    if ( hytxb.tx_left == 0 )
+    if ( hytxb.tx_left == 0 ) {
         return 1;
+    }
 
     if (( rc = tty_write( hytxb.tx_buf + hytxb.tx_ptr, hytxb.tx_left )) < 0 ) {
-        if ( rc != TTY_TIMEOUT )
+        if ( rc != TTY_TIMEOUT ) {
             return rc;
+        }
     } else {
         hytxb.tx_left -= rc;
         hytxb.tx_ptr += rc;
@@ -1026,90 +1070,90 @@ static void debugReceivedPkt(dword crcDebug, int crcType)
     int buflen;
 
     switch (rxBuf[rxpktlen]) {
-        case HPKT_START:
-            strcat( buf1, "START" );
-            break;
+    case HPKT_START:
+        strcat( buf1, "START" );
+        break;
 
-        case HPKT_INIT:
-             s1 = ((char *) rxBuf) + ((int) strlen((char *) rxBuf)) + 1;
-             s2 = s1 + ((int) strlen(s1)) + 1;
-             s3 = s2 + ((int) strlen(s2)) + 1;
-             s4 = s3 + ((int) strlen(s3)) + 1;
-             sprintf( buf1, "INIT (appinfo='%s')", (char *) rxBuf );
-             sprintf( buf2, "(can='%s'  want='%s'  options='%s'  pktprefix='%s')",
+    case HPKT_INIT:
+        s1 = ((char *) rxBuf) + ((int) strlen((char *) rxBuf)) + 1;
+        s2 = s1 + ((int) strlen(s1)) + 1;
+        s3 = s2 + ((int) strlen(s2)) + 1;
+        s4 = s3 + ((int) strlen(s3)) + 1;
+        sprintf( buf1, "INIT (appinfo='%s')", (char *) rxBuf );
+        sprintf( buf2, "(can='%s'  want='%s'  options='%s'  pktprefix='%s')",
                  s1, s2, s3, s4 );
-             break;
+        break;
 
-        case HPKT_INITACK:
-            strcat( buf1, "INITACK" );
-            break;
+    case HPKT_INITACK:
+        strcat( buf1, "INITACK" );
+        break;
 
-        case HPKT_FINFO:
-            sprintf( buf1, "FINFO ('%s'  rxstate=%s)", rxBuf, hydra_rx_state_str( rxState ));
-            break;
+    case HPKT_FINFO:
+        sprintf( buf1, "FINFO ('%s'  rxstate=%s)", rxBuf, hydra_rx_state_str( rxState ));
+        break;
 
-        case HPKT_FINFOACK:
-            sprintf( buf1, "FINFOACK (pos=%ld  txstate=%s)"/*  txfd=%d)"*/,
-                hydra_getlong( rxBuf ), hydra_tx_state_str( txState )/*, txfd*/);
-            break;
+    case HPKT_FINFOACK:
+        sprintf( buf1, "FINFOACK (pos=%ld  txstate=%s)"/*  txfd=%d)"*/,
+                 hydra_getlong( rxBuf ), hydra_tx_state_str( txState )/*, txfd*/);
+        break;
 
-        case HPKT_DATA:
-            sprintf( buf1, "DATA (rxstate=%s  pos=%ld  len=%u)",
-                hydra_rx_state_str( rxState ), hydra_getlong( rxBuf ),
-                (word) (rxpktlen - ((int) (LONGx1))));
-            break;
+    case HPKT_DATA:
+        sprintf( buf1, "DATA (rxstate=%s  pos=%ld  len=%u)",
+                 hydra_rx_state_str( rxState ), hydra_getlong( rxBuf ),
+                 (word) (rxpktlen - ((int) (LONGx1))));
+        break;
 
-        case HPKT_DATAACK:
-            sprintf( buf1, "DATAACK (rxstate=%s  pos=%ld)",
-                hydra_rx_state_str( rxState ), hydra_getlong( rxBuf ));
-            break;
+    case HPKT_DATAACK:
+        sprintf( buf1, "DATAACK (rxstate=%s  pos=%ld)",
+                 hydra_rx_state_str( rxState ), hydra_getlong( rxBuf ));
+        break;
 
-        case HPKT_RPOS:
-            sprintf( buf1, "RPOS (pos=%ld%s  blklen=%u->%ld  syncid=%ld%s  txstate=%s)"/*  txfd=%d)"*/,
-                hydra_getlong( rxBuf ),
-                hydra_getlong( rxBuf ) < 0L ? " Skip" : "",
-                txBlkLen, hydra_getlong( rxBuf + (LONGx1)),
-                hydra_getlong( rxBuf + (LONGx2)),
-                hydra_getlong( rxBuf + (LONGx2)) == rxsyncid ? " Dup" : "",
-                hydra_tx_state_str( txState )/*, txfd*/);
-            break;
+    case HPKT_RPOS:
+        sprintf( buf1, "RPOS (pos=%ld%s  blklen=%u->%ld  syncid=%ld%s  txstate=%s)"/*  txfd=%d)"*/,
+                 hydra_getlong( rxBuf ),
+                 hydra_getlong( rxBuf ) < 0L ? " Skip" : "",
+                 txBlkLen, hydra_getlong( rxBuf + (LONGx1)),
+                 hydra_getlong( rxBuf + (LONGx2)),
+                 hydra_getlong( rxBuf + (LONGx2)) == rxsyncid ? " Dup" : "",
+                 hydra_tx_state_str( txState )/*, txfd*/);
+        break;
 
-        case HPKT_EOF:
-            sprintf( buf1, "EOF (rxstate=%s  pos=%ld%s)",
-                hydra_rx_state_str( rxState ), hydra_getlong( rxBuf ),
-                hydra_getlong( rxBuf ) < 0L ? " Skip" : "");
-            break;
+    case HPKT_EOF:
+        sprintf( buf1, "EOF (rxstate=%s  pos=%ld%s)",
+                 hydra_rx_state_str( rxState ), hydra_getlong( rxBuf ),
+                 hydra_getlong( rxBuf ) < 0L ? " Skip" : "");
+        break;
 
-        case HPKT_EOFACK:
-            sprintf( buf1, "EOFACK (txstate=%s)", hydra_tx_state_str( txState ));
-            break;
+    case HPKT_EOFACK:
+        sprintf( buf1, "EOFACK (txstate=%s)", hydra_tx_state_str( txState ));
+        break;
 
-        case HPKT_IDLE:
-            strcat( buf1, "IDLE" );
-            break;
+    case HPKT_IDLE:
+        strcat( buf1, "IDLE" );
+        break;
 
-        case HPKT_END:
-            strcat( buf1, "END" );
-            break;
+    case HPKT_END:
+        strcat( buf1, "END" );
+        break;
 
-        case HPKT_DEVDATA:
-            s1 = ((char *) rxBuf) + ((int) (LONGx1));
-            sprintf( buf1, "DEVDATA (id=%ld  dev=%s  len=%u",
-                hydra_getlong( rxBuf ), s1,
-                rxpktlen - (((int) (LONGx1)) + ((int) strlen(s1)) + 1));
-            break;
+    case HPKT_DEVDATA:
+        s1 = ((char *) rxBuf) + ((int) (LONGx1));
+        sprintf( buf1, "DEVDATA (id=%ld  dev=%s  len=%u",
+                 hydra_getlong( rxBuf ), s1,
+                 rxpktlen - (((int) (LONGx1)) + ((int) strlen(s1)) + 1));
+        break;
 
-        case HPKT_DEVDACK:
-            sprintf( buf1, "DEVDACK (devtxstate=%s  id=%ld)",
-                hydra_dpkttx_state_str( devtxstate ),
-                hydra_getlong( rxBuf ));
-            break;
+    case HPKT_DEVDACK:
+        sprintf( buf1, "DEVDACK (devtxstate=%s  id=%ld)",
+                 hydra_dpkttx_state_str( devtxstate ),
+                 hydra_getlong( rxBuf ));
+        break;
 
-        default:
-            sprintf( buf1, "Unkown pkttype %d (txstate=%s  rxstate=%s)",
-                (int) rxBuf[rxpktlen], hydra_tx_state_str( txState ),
-                hydra_rx_state_str( rxState ));
-            break;
+    default:
+        sprintf( buf1, "Unkown pkttype %d (txstate=%s  rxstate=%s)",
+                 (int) rxBuf[rxpktlen], hydra_tx_state_str( txState ),
+                 hydra_rx_state_str( rxState ));
+        break;
     }
 
     buflen = strlen( buf1 );
@@ -1118,18 +1162,20 @@ static void debugReceivedPkt(dword crcDebug, int crcType)
     s2 = HPS( rxBuf[rxpktlen] );
 
     DEBUG(('H',2,"rxpkt %s%s(crc%d:%08x format=%s  type=%s  len=%d)",
-        buflen < 9 ?  buf1 : "",
-        buflen < 9 ?  " " : "",
-        crcType, crcDebug, s1, s2, rxpktlen));
+           buflen < 9 ?  buf1 : "",
+           buflen < 9 ?  " " : "",
+           crcType, crcDebug, s1, s2, rxpktlen));
 
-    if ( buflen > 8 )
+    if ( buflen > 8 ) {
         DEBUG(('H',3,"  <- %s", buf1));
-    
-    if ( buf2[0] )
+    }
+
+    if ( buf2[0] ) {
         DEBUG(('H',3,"  <- %s", buf2));
+    }
 
     DEBUG(('H',4,"now: %08x, rxtimer: %08x, txtimer: %08x, braindead: %d",
-        tnow, rxtimer, txtimer, tnow - braindead));
+           tnow, rxtimer, txtimer, tnow - braindead));
 }
 #endif
 
@@ -1147,202 +1193,214 @@ static int rxpkt(boolean canread)
     int crcType;
 #endif
 
-    if (( i = hydra_check_timers()) != H_NOPKT )
+    if (( i = hydra_check_timers()) != H_NOPKT ) {
         return i;
+    }
 
-    if ( !canread )
+    if ( !canread ) {
         return H_NOPKT;
+    }
 
     p = rxBufPtr;
 
     while(( c = GETCHAR( 0 )) >= 0 ) {
 
-        if ( rxoptions & HOPT_HIGHBIT )
+        if ( rxoptions & HOPT_HIGHBIT ) {
             c &= 0x7f;
+        }
 
         n = c;
 
-        if ( rxoptions & HOPT_HIGHCTL )
+        if ( rxoptions & HOPT_HIGHCTL ) {
             n &= 0x7f;
+        }
 
         if ( n != H_DLE &&
-            ((( rxoptions & HOPT_XONXOFF ) && ( n == XON || n == XOFF )) ||
-             (( rxoptions & HOPT_CTLCHRS ) && ( n < 32 || n == 127 ))))
+                ((( rxoptions & HOPT_XONXOFF ) && ( n == XON || n == XOFF )) ||
+                 (( rxoptions & HOPT_CTLCHRS ) && ( n < 32 || n == 127 )))) {
             continue;
+        }
 
         if ( rxdle || c == H_DLE ) {
             switch (c) {
-                case H_DLE:
-                    if ( ++rxdle >= 5 )
-                        return ( H_CANCEL );
+            case H_DLE:
+                if ( ++rxdle >= 5 ) {
+                    return ( H_CANCEL );
+                }
+                break;
+
+            case HCHR_PKTEND:
+                if ( p == NULL ) {
+                    break;
+                }
+
+                rxBufPtr = p;
+
+                switch( rxpktformat ) {
+                case HCHR_BINPKT:
+                    q = rxBufPtr;
                     break;
 
-                case HCHR_PKTEND:
-                    if ( p == NULL )
-                        break;
-
-                    rxBufPtr = p;
-
-                    switch( rxpktformat ) {
-                        case HCHR_BINPKT:
-                            q = rxBufPtr;
-                            break;
-
-                        case HCHR_HEXPKT:
-                            for( p = q = rxBuf; p < rxBufPtr; p++ ) {
-                                if ( *p == '\\' && *++p != '\\' ) {
-                                    i = *p;
-                                    n = *++p;
-                                    if (( i -= '0' ) > 9 ) i -= ( 'a' - ':' );
-                                    if (( n -= '0' ) > 9 ) n -= ( 'a' - ':' );
-                                    if (( i & ~0x0f ) || ( n & ~0x0f )) {
-                                        c = H_NOPKT; 	/*AGL:17aug93*/
-                                        break;
-                                    }
-                                    *q++ = ( i << 4 ) | n;
-                                }
-                                else
-                                    *q++ = *p;
+                case HCHR_HEXPKT:
+                    for( p = q = rxBuf; p < rxBufPtr; p++ ) {
+                        if ( *p == '\\' && *++p != '\\' ) {
+                            i = *p;
+                            n = *++p;
+                            if (( i -= '0' ) > 9 ) {
+                                i -= ( 'a' - ':' );
                             }
-                            if ( p > rxBufPtr )
-                                c = H_NOPKT;
-                            break;
-
-                        case HCHR_ASCPKT:
-                            n = i = 0;
-                            for( p = q = rxBuf; p < rxBufPtr; p++ ) {
-                                i |= (( *p & 0x7f ) << n );
-                                if (( n += 7 ) >= 8 ) {
-                                    *q++ = (byte) ( i & 0xff );
-                                    i >>= 8;
-                                    n -= 8;
-                                }
+                            if (( n -= '0' ) > 9 ) {
+                                n -= ( 'a' - ':' );
                             }
-                            break;
-
-                        case HCHR_UUEPKT:
-                            n = (int) ( rxBufPtr - rxBuf );
-                            for( p = q = rxBuf; n >= 4; n -= 4, p += 4 ) {
-                                if ( p[0] <= ' ' || p[0] >= 'a' ||
-                                     p[1] <= ' ' || p[1] >= 'a' ||
-                                     p[2] <= ' ' || p[2] >= 'a' ||	/*AGL:17aug93*/
-                                     p[3] <= ' ' || p[3] >= 'a') {	/*AGL:17aug93*/
-                                    c = H_NOPKT;
-                                    break;
-                                }
-                                *q++ = (byte) ((h_uudec(p[0]) << 2) | (h_uudec(p[1]) >> 4));
-                                *q++ = (byte) ((h_uudec(p[1]) << 4) | (h_uudec(p[2]) >> 2));
-                                *q++ = (byte) ((h_uudec(p[2]) << 6) | h_uudec(p[3]));
+                            if (( i & ~0x0f ) || ( n & ~0x0f )) {
+                                c = H_NOPKT; 	/*AGL:17aug93*/
+                                break;
                             }
-                            if ( n >= 2 ) {
-                                if ( p[0] <= ' ' || p[0] >= 'a' ||	  /*AGL:17aug93*/
-                                     p[1] <= ' ' || p[1] >= 'a') {	  /*AGL:17aug93*/
-                                    c = H_NOPKT;
-                                    break;
-                                }
-                                *q++ = (byte) ((h_uudec(p[0]) << 2) | (h_uudec(p[1]) >> 4));
-                                if ( n == 3 ) {
-                                    if ( p[2] <= ' ' || p[2] >= 'a' ) {  /*AGL:17aug93*/
-                                        c = H_NOPKT;
-                                        break;
-                                    }
-                                    *q++ = (byte) ((h_uudec(p[1]) << 4) | (h_uudec(p[2]) >> 2));
-                                }
-                            }
-                            break;
-
-                        default:   /* This'd mean internal fluke */
-                            DEBUG(('H',2,"rxpkt <PKTEND> (pktformat=%s dec=%d hex=%02x) Fluke ??",
-                                    HFS( rxpktformat ), rxpktformat, rxpktformat));
-                            c = H_NOPKT;
-                            break;
-                    }
-
-                    rxBufPtr = NULL;
-
-                    if (c == H_NOPKT)
-                       break;
-
-                    rxpktlen = (word) (q - rxBuf);
-
-                    if (rxpktformat != HCHR_HEXPKT && (rxoptions & HOPT_CRC32)) {
-                       if (rxpktlen < 5) {
-                          c = H_NOPKT;
-                          break;
-                       }
-
-                       crc = crc32block(rxBuf,rxpktlen);
-#ifdef NEED_DEBUG
-                       crcDebug = crc;
-                       crcType = 32;
-#endif
-                       n = h_crc32test( crc );
-                       rxpktlen -= (word) (LONGx1);  /* remove CRC-32 */
-                    }
-                    else {
-                       if (rxpktlen < 3) {
-                          c = H_NOPKT;
-                          break;
-                       }
-
-                       crc = crc16block(rxBuf,rxpktlen);
-#ifdef NEED_DEBUG
-                       crcDebug = crc;
-                       crcType = 16;
-#endif
-                       n = h_crc16test( crc );
-                       rxpktlen -= (word) sizeof (word);  /* remove CRC-16 */
-                    }
-
-                    rxpktlen--;                     /* remove type  */
-
-#ifdef NEED_DEBUG
-                    debugReceivedPkt( crcDebug, crcType );
-#endif
-                    if (n) {
-                       return ((word) rxBuf[rxpktlen]);
-                    }/*goodpkt*/
-
-                    DEBUG(('H',3,"Bad CRC (format=%s  type=%s  len=%d)",
-                        HFS( rxpktformat ), HPS( rxBuf[rxpktlen] ), rxpktlen));
-
-                    break;
-
-                case HCHR_BINPKT: 
-                case HCHR_HEXPKT: 
-                case HCHR_ASCPKT: 
-                case HCHR_UUEPKT:
-                    DEBUG(('H',2,"rxpkt <PKTSTART> (pktformat=%s)", HFS( c )));
-                    rxpktformat = c;
-                    p = rxBufPtr = rxBuf;
-                    rxdle = 0;
-                    break;
-
-                default:
-                    if (p) {
-                        if (p < rxBufMax)
-                           *p++ = (byte) (c ^ 0x40);
-                        else {
-                           DEBUG(('H',2,"rxpkt Pkt too long - discarded"));
-                           p = NULL;
+                            *q++ = ( i << 4 ) | n;
+                        } else {
+                            *q++ = *p;
                         }
                     }
-                    rxdle = 0;
+                    if ( p > rxBufPtr ) {
+                        c = H_NOPKT;
+                    }
                     break;
+
+                case HCHR_ASCPKT:
+                    n = i = 0;
+                    for( p = q = rxBuf; p < rxBufPtr; p++ ) {
+                        i |= (( *p & 0x7f ) << n );
+                        if (( n += 7 ) >= 8 ) {
+                            *q++ = (byte) ( i & 0xff );
+                            i >>= 8;
+                            n -= 8;
+                        }
+                    }
+                    break;
+
+                case HCHR_UUEPKT:
+                    n = (int) ( rxBufPtr - rxBuf );
+                    for( p = q = rxBuf; n >= 4; n -= 4, p += 4 ) {
+                        if ( p[0] <= ' ' || p[0] >= 'a' ||
+                                p[1] <= ' ' || p[1] >= 'a' ||
+                                p[2] <= ' ' || p[2] >= 'a' ||	/*AGL:17aug93*/
+                                p[3] <= ' ' || p[3] >= 'a') {	/*AGL:17aug93*/
+                            c = H_NOPKT;
+                            break;
+                        }
+                        *q++ = (byte) ((h_uudec(p[0]) << 2) | (h_uudec(p[1]) >> 4));
+                        *q++ = (byte) ((h_uudec(p[1]) << 4) | (h_uudec(p[2]) >> 2));
+                        *q++ = (byte) ((h_uudec(p[2]) << 6) | h_uudec(p[3]));
+                    }
+                    if ( n >= 2 ) {
+                        if ( p[0] <= ' ' || p[0] >= 'a' ||	  /*AGL:17aug93*/
+                                p[1] <= ' ' || p[1] >= 'a') {	  /*AGL:17aug93*/
+                            c = H_NOPKT;
+                            break;
+                        }
+                        *q++ = (byte) ((h_uudec(p[0]) << 2) | (h_uudec(p[1]) >> 4));
+                        if ( n == 3 ) {
+                            if ( p[2] <= ' ' || p[2] >= 'a' ) {  /*AGL:17aug93*/
+                                c = H_NOPKT;
+                                break;
+                            }
+                            *q++ = (byte) ((h_uudec(p[1]) << 4) | (h_uudec(p[2]) >> 2));
+                        }
+                    }
+                    break;
+
+                default:   /* This'd mean internal fluke */
+                    DEBUG(('H',2,"rxpkt <PKTEND> (pktformat=%s dec=%d hex=%02x) Fluke ??",
+                           HFS( rxpktformat ), rxpktformat, rxpktformat));
+                    c = H_NOPKT;
+                    break;
+                }
+
+                rxBufPtr = NULL;
+
+                if (c == H_NOPKT) {
+                    break;
+                }
+
+                rxpktlen = (word) (q - rxBuf);
+
+                if (rxpktformat != HCHR_HEXPKT && (rxoptions & HOPT_CRC32)) {
+                    if (rxpktlen < 5) {
+                        c = H_NOPKT;
+                        break;
+                    }
+
+                    crc = crc32block(rxBuf,rxpktlen);
+#ifdef NEED_DEBUG
+                    crcDebug = crc;
+                    crcType = 32;
+#endif
+                    n = h_crc32test( crc );
+                    rxpktlen -= (word) (LONGx1);  /* remove CRC-32 */
+                } else {
+                    if (rxpktlen < 3) {
+                        c = H_NOPKT;
+                        break;
+                    }
+
+                    crc = crc16block(rxBuf,rxpktlen);
+#ifdef NEED_DEBUG
+                    crcDebug = crc;
+                    crcType = 16;
+#endif
+                    n = h_crc16test( crc );
+                    rxpktlen -= (word) sizeof (word);  /* remove CRC-16 */
+                }
+
+                rxpktlen--;                     /* remove type  */
+
+#ifdef NEED_DEBUG
+                debugReceivedPkt( crcDebug, crcType );
+#endif
+                if (n) {
+                    return ((word) rxBuf[rxpktlen]);
+                }/*goodpkt*/
+
+                DEBUG(('H',3,"Bad CRC (format=%s  type=%s  len=%d)",
+                       HFS( rxpktformat ), HPS( rxBuf[rxpktlen] ), rxpktlen));
+
+                break;
+
+            case HCHR_BINPKT:
+            case HCHR_HEXPKT:
+            case HCHR_ASCPKT:
+            case HCHR_UUEPKT:
+                DEBUG(('H',2,"rxpkt <PKTSTART> (pktformat=%s)", HFS( c )));
+                rxpktformat = c;
+                p = rxBufPtr = rxBuf;
+                rxdle = 0;
+                break;
+
+            default:
+                if (p) {
+                    if (p < rxBufMax) {
+                        *p++ = (byte) (c ^ 0x40);
+                    } else {
+                        DEBUG(('H',2,"rxpkt Pkt too long - discarded"));
+                        p = NULL;
+                    }
+                }
+                rxdle = 0;
+                break;
             }
-        }
-        else if (p) {
-           if (p < rxBufMax)
-              *p++ = (byte) c;
-           else {
-              DEBUG(('H',2,"rxpkt Pkt too long - discarded"));
-              p = NULL;
-           }
+        } else if (p) {
+            if (p < rxBufMax) {
+                *p++ = (byte) c;
+            } else {
+                DEBUG(('H',2,"rxpkt Pkt too long - discarded"));
+                p = NULL;
+            }
         }
     }
 
-    if ( c != TTY_TIMEOUT && NOTTO( c ))
+    if ( c != TTY_TIMEOUT && NOTTO( c )) {
         return H_CARRIER;
+    }
 
     rxBufPtr = p;
 
@@ -1397,42 +1455,48 @@ void hydra_init(dword want_options, int orig, int hmod)
 
     batchesdone = 0;
 
-    if (originator)
+    if (originator) {
         hdxlink = false;
-    else
+    } else {
         hdxlink = cfgi( CFG_HYDRAHDX ) == 1;
+    }
 
     verboseLog = cfgi( CFG_HYDRALOGVERBOSE );
 
     hoCAN = HCAN_OPTIONS;
-    if ( cfgi( CFG_HYDRACRC16 ) == 1 )
+    if ( cfgi( CFG_HYDRACRC16 ) == 1 ) {
         hoCAN &= ~HOPT_CRC32;
+    }
 
     options = (want_options & hoCAN) & ~HUNN_OPTIONS;
 
     DEBUG(('H',5,"Want CRC%d", (cfgi( CFG_HYDRACRC16 ) ? 16 : 32)));
 
     timeOut = (word) (40960L / effbaud);
-    if      (timeOut < H_MINTIMER) timeOut = H_MINTIMER;
-    else if (timeOut > H_MAXTIMER) timeOut = H_MAXTIMER;
+    if      (timeOut < H_MINTIMER) {
+        timeOut = H_MINTIMER;
+    } else if (timeOut > H_MAXTIMER) {
+        timeOut = H_MAXTIMER;
+    }
 
     DEBUG(('H',5,"effbaud: %d", effbaud));
     DEBUG(('H',5,"Timeout: %d", timeOut));
 
 #ifndef HYDRA8K16K
 
-    if ( effbaud >= 2400UL)					/*AGL:09mar94*/
-        txMaxBlkLen = H_MAXBLKLEN;				/*AGL:09mar94*/
-    else {							/*AGL:09mar94*/
+    if ( effbaud >= 2400UL) {				/*AGL:09mar94*/
+        txMaxBlkLen = H_MAXBLKLEN;    /*AGL:09mar94*/
+    } else {							/*AGL:09mar94*/
         txMaxBlkLen = (word) ((effbaud / 300) * 128);		/*AGL:09mar94*/
-        if ( txMaxBlkLen < 256 ) txMaxBlkLen = 256;		/*AGL:09mar94*/
+        if ( txMaxBlkLen < 256 ) {
+            txMaxBlkLen = 256;    /*AGL:09mar94*/
+        }
     }								/*AGL:09mar94*/
 
     if (is_ip /* || arqlink */) {				/*AGL:14jan95*/
         rxBlkLen = txBlkLen = txMaxBlkLen;
         txgoodneeded = 0;
-    }
-    else {
+    } else {
         rxBlkLen = txBlkLen = (word) ((effbaud < 2400UL) ? 256 : 512);
         txgoodneeded = txMaxBlkLen;				/*AGL:23feb93*/
     }
@@ -1444,15 +1508,17 @@ void hydra_init(dword want_options, int orig, int hmod)
             txMaxBlkLen = H_MAXBLKLEN( 1 );
         } else {
             txMaxBlkLen = (word) ((effbaud / 300) * 128);
-            if ( txMaxBlkLen < 256 ) txMaxBlkLen = 256;
+            if ( txMaxBlkLen < 256 ) {
+                txMaxBlkLen = 256;
+            }
         }
 
         if (is_ip /* || arqlink */) {				/*AGL:14jan95*/
-           rxBlkLen = txBlkLen = txMaxBlkLen;
-           txgoodneeded = 0;
+            rxBlkLen = txBlkLen = txMaxBlkLen;
+            txgoodneeded = 0;
         } else {
-           rxBlkLen = txBlkLen = (word) ((effbaud < 2400UL) ? 256 : 512);
-           txgoodneeded = txMaxBlkLen;				/*AGL:23feb93*/
+            rxBlkLen = txBlkLen = (word) ((effbaud < 2400UL) ? 256 : 512);
+            txgoodneeded = txMaxBlkLen;				/*AGL:23feb93*/
         }
 
     } else {
@@ -1496,8 +1562,9 @@ void hydra_deinit(void)
     qpreset( 0 );
     qpreset( 1 );
     for( i = 0; i < hytxb.npkts; i++ )
-        if ( hytxb.pqueue[i].pkt )
+        if ( hytxb.pqueue[i].pkt ) {
             xfree( hytxb.pqueue[i].pkt );
+        }
     xfree( hytxb.pqueue );
     xfree( hytxb.tx_buf );
     xfree( rxBuf );
@@ -1537,17 +1604,18 @@ int hydra_send(char *txpathname, char *txalias)
         devtxstate = HTD_DONE;
 
         braindead  = h_timer_set(H_BRAINDEAD);
-    }
-    else
+    } else {
         txState = HTX_FINFO;
+    }
 
     txtimer   = h_timer_reset();
     txretries = 0;
 
     /*-------------------------------------------------------------------*/
     if ( txpathname ) {
-        if ( !( txfd = txopen( txpathname, txalias )))
+        if ( !( txfd = txopen( txpathname, txalias ))) {
             return XFER_SKIP;
+        }
 
         txStart  = 0L;
         txsyncid = 0L;
@@ -1563,167 +1631,168 @@ int hydra_send(char *txpathname, char *txalias)
     do {
         /*----------------------------------------------------------------*/
         switch (devtxstate) {
-            /*---------------------------------------------------------*/
-            case HTD_DATA:
-                 if (txState > HTX_RINIT) {
-                    hydra_putlong( txbufin, (dword) devtxid );
-                    p = ((char *) txbufin + (LONGx1));
+        /*---------------------------------------------------------*/
+        case HTD_DATA:
+            if (txState > HTX_RINIT) {
+                hydra_putlong( txbufin, (dword) devtxid );
+                p = ((char *) txbufin + (LONGx1));
 #ifndef HYDRA8K16K
-                    xstrcpy( p, devtxdev, H_BUFLEN );
+                xstrcpy( p, devtxdev, H_BUFLEN );
 #else
-                    xstrcpy( p, devtxdev, 1020 );
+                xstrcpy( p, devtxdev, 1020 );
 #endif
-                    p += H_FLAGLEN + 1;
-                    memcpy(p,devtxbuf,devtxlen);
-                    txpkt((word) ((LONGx1) + H_FLAGLEN + 1 + devtxlen), HPKT_DEVDATA);
-                    devtxtimer = h_timer_set((!rxState && txState == HTX_REND) ?
-                         timeOut >> 1 : 
-                         timeOut); /*AGL:10mar93*/
-                    devtxstate = HTD_DACK;
-                 }
-                 break;
+                p += H_FLAGLEN + 1;
+                memcpy(p,devtxbuf,devtxlen);
+                txpkt((word) ((LONGx1) + H_FLAGLEN + 1 + devtxlen), HPKT_DEVDATA);
+                devtxtimer = h_timer_set((!rxState && txState == HTX_REND) ?
+                                         timeOut >> 1 :
+                                         timeOut); /*AGL:10mar93*/
+                devtxstate = HTD_DACK;
+            }
+            break;
 
-            /*---------------------------------------------------------*/
-            default:
-                 break;
+        /*---------------------------------------------------------*/
+        default:
+            break;
 
             /*---------------------------------------------------------*/
         }
 
         /*----------------------------------------------------------------*/
         switch (txState) {
-            /*---------------------------------------------------------*/
-            case HTX_START:
-                 PUTBLK((byte *) autostr,(int) strlen(autostr));
-                 txpkt((word) 0,HPKT_START );
-                 txtimer = h_timer_set(H_START);
-                 txState = HTX_SWAIT;
-                 break;
+        /*---------------------------------------------------------*/
+        case HTX_START:
+            PUTBLK((byte *) autostr,(int) strlen(autostr));
+            txpkt((word) 0,HPKT_START );
+            txtimer = h_timer_set(H_START);
+            txState = HTX_SWAIT;
+            break;
 
-            /*---------------------------------------------------------*/
-            case HTX_INIT:
-                 p = (char *) txbufin;
-                 snprintf(p,256,"%08lx%s,%s %s",
+        /*---------------------------------------------------------*/
+        case HTX_INIT:
+            p = (char *) txbufin;
+            snprintf(p,256,"%08lx%s,%s %s",
                      H_REVSTAMP, progname, version, osname);
-                 p += ((int) strlen(p)) + 1; /* our app info & HYDRA rev. */
-                 put_flags(p,h_flags,hoCAN);           /* what we CAN  */
-                 
-                 p += ((int) strlen(p)) + 1;
-                 put_flags(p,h_flags,options);         /* what we WANT */
-                 p += ((int) strlen(p)) + 1;
-                 sprintf(p,"%08lx%08lx",               /* TxRx windows */
-                     hydra_txwindow,hydra_rxwindow);
-                 p += ((int) strlen(p)) + 1;
-                 strcpy(p,pktprefix);     /* pkt prefix string we want */
-                 p += ((int) strlen(p)) + 1;
+            p += ((int) strlen(p)) + 1; /* our app info & HYDRA rev. */
+            put_flags(p,h_flags,hoCAN);           /* what we CAN  */
 
-                 txoptions = HTXI_OPTIONS;
-                 txpkt((word) ((byte *) p - (byte *) txbufin), HPKT_INIT );
-                 txoptions = rxoptions;
-                 txtimer = h_timer_set(timeOut >> 1);
-                 txState = HTX_INITACK;
-                 break;
+            p += ((int) strlen(p)) + 1;
+            put_flags(p,h_flags,options);         /* what we WANT */
+            p += ((int) strlen(p)) + 1;
+            sprintf(p,"%08lx%08lx",               /* TxRx windows */
+                    hydra_txwindow,hydra_rxwindow);
+            p += ((int) strlen(p)) + 1;
+            strcpy(p,pktprefix);     /* pkt prefix string we want */
+            p += ((int) strlen(p)) + 1;
 
-            /*---------------------------------------------------------*/
-            case HTX_FINFO:
-                 if (txfd) {
-                     if (!txretries) {
-                         DEBUG(('H',1,"HSend: %s%s%s (%ldb), %d min.",
-                                txpathname, txalias ? " -> " : "",
-                                txalias ? txalias : "",
-                                (dword) sendf.ftot,
-                                (int) (txfsize * 10L / effbaud + 27L) / 54L));
-                     }
-                     snprintf((char *) txbufin, 1024, "%08lx%08lx%08lx%08lx%08lx%s",
+            txoptions = HTXI_OPTIONS;
+            txpkt((word) ((byte *) p - (byte *) txbufin), HPKT_INIT );
+            txoptions = rxoptions;
+            txtimer = h_timer_set(timeOut >> 1);
+            txState = HTX_INITACK;
+            break;
+
+        /*---------------------------------------------------------*/
+        case HTX_FINFO:
+            if (txfd) {
+                if (!txretries) {
+                    DEBUG(('H',1,"HSend: %s%s%s (%ldb), %d min.",
+                           txpathname, txalias ? " -> " : "",
+                           txalias ? txalias : "",
+                           (dword) sendf.ftot,
+                           (int) (txfsize * 10L / effbaud + 27L) / 54L));
+                }
+                snprintf((char *) txbufin, 1024, "%08lx%08lx%08lx%08lx%08lx%s",
                          (dword) sendf.mtime, (dword) sendf.ftot,
                          0L, 0L, 0L, fnc( sendf.fname ));
-                         /* we shall support HOPT_NFI
-                         ( sendf.nf == 1 ) ? sendf.allf : sendf.nf, fnc( sendf.fname ));
-                         */
-                     strlwr((char *) txbufin + 40 );
-                     i = strlen((char *) txbufin ) + 1;
-                     if ( sendf.fname ) {
-                         strcpy( (char *) txbufin + i, sendf.fname );
-                         i += strlen( sendf.fname ) + 1;
-                     }
-                 }
-                 else {
-                     if (!txretries) {
-                         DEBUG(('H',1,"HSend: End of batch"));
-                         qpreset(1);
-                     }
-                     *txbufin = '\0';
-                     i = 1;
-                 }
-                 txpkt((word) i, HPKT_FINFO );
-                 txtimer = h_timer_set(txretries ? timeOut >> 1 : timeOut);
-                 txState = HTX_FINFOACK;
-                 break;
+                /* we shall support HOPT_NFI
+                ( sendf.nf == 1 ) ? sendf.allf : sendf.nf, fnc( sendf.fname ));
+                */
+                strlwr((char *) txbufin + 40 );
+                i = strlen((char *) txbufin ) + 1;
+                if ( sendf.fname ) {
+                    strcpy( (char *) txbufin + i, sendf.fname );
+                    i += strlen( sendf.fname ) + 1;
+                }
+            } else {
+                if (!txretries) {
+                    DEBUG(('H',1,"HSend: End of batch"));
+                    qpreset(1);
+                }
+                *txbufin = '\0';
+                i = 1;
+            }
+            txpkt((word) i, HPKT_FINFO );
+            txtimer = h_timer_set(txretries ? timeOut >> 1 : timeOut);
+            txState = HTX_FINFOACK;
+            break;
 
-            /*---------------------------------------------------------*/
-            case HTX_XDATA:
-                 if ( hytxb.npkts )
-                     break;
+        /*---------------------------------------------------------*/
+        case HTX_XDATA:
+            if ( hytxb.npkts ) {
+                break;
+            }
 
-                 if (txPos < 0L)
-                     i = -1;                                    /* Skip */
-                 else {
-                     hydra_putlong( txbufin, (dword) txPos );
-                     if ((i = fread( txbufin + 4, 1, txBlkLen, txfd )) < 0) {
-                         DEBUG(('H',1,"HSend: File read error"));
-                         sline("HSend: File read error");
-                         txclose( &txfd, FOP_ERROR );
-                         txPos = H_SUSPEND;                     /* Skip -2L */
-                     }
-                 }
+            if (txPos < 0L) {
+                i = -1;    /* Skip */
+            } else {
+                hydra_putlong( txbufin, (dword) txPos );
+                if ((i = fread( txbufin + 4, 1, txBlkLen, txfd )) < 0) {
+                    DEBUG(('H',1,"HSend: File read error"));
+                    sline("HSend: File read error");
+                    txclose( &txfd, FOP_ERROR );
+                    txPos = H_SUSPEND;                     /* Skip -2L */
+                }
+            }
 
-                 if (i > 0) {
-                     txPos += i;
-                     txpkt((word) (LONGx1 + i), HPKT_DATA);
+            if (i > 0) {
+                txPos += i;
+                txpkt((word) (LONGx1 + i), HPKT_DATA);
 
-                     if (txBlkLen < txMaxBlkLen &&
-                         (txgoodbytes += (word) i) >= txgoodneeded) {
+                if (txBlkLen < txMaxBlkLen &&
+                        (txgoodbytes += (word) i) >= txgoodneeded) {
 
-                         txBlkLen <<= 1;
-                         if (txBlkLen >= txMaxBlkLen) {
-                             txBlkLen = txMaxBlkLen;
-                             txgoodneeded = 0;
-                         }
-                         txgoodbytes = 0;
-                     }
+                    txBlkLen <<= 1;
+                    if (txBlkLen >= txMaxBlkLen) {
+                        txBlkLen = txMaxBlkLen;
+                        txgoodneeded = 0;
+                    }
+                    txgoodbytes = 0;
+                }
 
-                     if (txwindow && (txPos >= (txlastack + txwindow))) {
-                         txtimer = h_timer_set(txretries ? timeOut >> 1 : timeOut);
-                         txState = HTX_DATAACK;
-                     }
+                if (txwindow && (txPos >= (txlastack + txwindow))) {
+                    txtimer = h_timer_set(txretries ? timeOut >> 1 : timeOut);
+                    txState = HTX_DATAACK;
+                }
 
-                     if (!txStart)
-                         txStart = time(NULL);
-                     hydra_status(true);
-                     break;
-                 }
+                if (!txStart) {
+                    txStart = time(NULL);
+                }
+                hydra_status(true);
+                break;
+            }
 
-                 /* fallthrough to HTX_EOF */
+        /* fallthrough to HTX_EOF */
 
-            /*---------------------------------------------------------*/
-            case HTX_EOF:
-                 hydra_putlong( txbufin, (dword) txPos );
-                 txpkt((word) LONGx1, HPKT_EOF);
-                 txtimer = h_timer_set(txretries ? timeOut >> 1 : timeOut);
-                 txState = HTX_EOFACK;
-                 break;
+        /*---------------------------------------------------------*/
+        case HTX_EOF:
+            hydra_putlong( txbufin, (dword) txPos );
+            txpkt((word) LONGx1, HPKT_EOF);
+            txtimer = h_timer_set(txretries ? timeOut >> 1 : timeOut);
+            txState = HTX_EOFACK;
+            break;
 
-            /*---------------------------------------------------------*/
-            case HTX_END:
-                 txpkt((word) 0, HPKT_END);
-                 txpkt((word) 0, HPKT_END);
-                 txtimer = h_timer_set(timeOut >> 1);
-                 txState = HTX_ENDACK;
-                 break;
+        /*---------------------------------------------------------*/
+        case HTX_END:
+            txpkt((word) 0, HPKT_END);
+            txpkt((word) 0, HPKT_END);
+            txtimer = h_timer_set(timeOut >> 1);
+            txState = HTX_ENDACK;
+            break;
 
-            /*---------------------------------------------------------*/
-            default:
-                 break;
+        /*---------------------------------------------------------*/
+        default:
+            break;
 
             /*---------------------------------------------------------*/
         }
@@ -1749,740 +1818,779 @@ int hydra_send(char *txpathname, char *txalias)
 
         rd = rd || tty_hasinbuf();
 
-        if ( wd && !tty_gothup )
+        if ( wd && !tty_gothup ) {
             hydra_txpkt();
+        }
 
         pkttype = rxpkt( rd );
 
         DEBUG(('H',4,"rxstate=%s, txstate=%s, pkttype=%d",
-            hydra_rx_state_str( rxState ),
-            hydra_tx_state_str( txState ),
-            pkttype ));
+               hydra_rx_state_str( rxState ),
+               hydra_tx_state_str( txState ),
+               pkttype ));
 
         /*----------------------------------------------------------*/
         switch (pkttype) {
-            /*---------------------------------------------------*/
+        /*---------------------------------------------------*/
+        case H_CARRIER:
+        case H_CANCEL:
+        case H_SYSABORT:
+        case H_BRAINTIME:
+            switch (pkttype) {
             case H_CARRIER:
+                p = "Carrier lost";
+                break;
             case H_CANCEL:
+                p = "Aborted by other side";
+                break;
             case H_SYSABORT:
+                p = "Aborted by operator";
+                break;
             case H_BRAINTIME:
-                 switch (pkttype) {
-                     case H_CARRIER:   p = "Carrier lost";          break;
-                     case H_CANCEL:    p = "Aborted by other side"; break;
-                     case H_SYSABORT:  p = "Aborted by operator";   break;
-                     case H_BRAINTIME: p = "Other end died";        break;
-                 }
-                 write_log( "Hydra: %s",p );
-                 txState = HTX_DONE;
-                 res = XFER_ABORT;
-                 break;
+                p = "Other end died";
+                break;
+            }
+            write_log( "Hydra: %s",p );
+            txState = HTX_DONE;
+            res = XFER_ABORT;
+            break;
 
-            /*---------------------------------------------------*/
-            case H_TXTIME:
-                 if (txState == HTX_XWAIT || txState == HTX_REND) {
-                    txpkt((word) 0, HPKT_IDLE);
-                    txtimer = h_timer_set(H_IDLE);
+        /*---------------------------------------------------*/
+        case H_TXTIME:
+            if (txState == HTX_XWAIT || txState == HTX_REND) {
+                txpkt((word) 0, HPKT_IDLE);
+                txtimer = h_timer_set(H_IDLE);
+                break;
+            }
+
+            if (++txretries > H_RETRIES) {
+                write_log( "Hydra: Too many errors" );
+                txState = HTX_DONE;
+                res = XFER_ABORT;
+                break;
+            }
+
+            DEBUG(('H',1,"Hydra: Timeout - Retry %u", txretries));
+            sline( "Hydra: Timeout - Retry %u", txretries );
+
+            txtimer = h_timer_reset();
+
+            switch (txState) {
+            case HTX_SWAIT:
+                txState = HTX_START;
+                break;
+            case HTX_INITACK:
+                txState = HTX_INIT;
+                break;
+            case HTX_FINFOACK:
+                txState = HTX_FINFO;
+                break;
+            case HTX_DATAACK:
+                txState = HTX_XDATA;
+                break;
+            case HTX_EOFACK:
+                txState = HTX_EOF;
+                break;
+            case HTX_ENDACK:
+                txState = HTX_END;
+                break;
+            }
+            break;
+
+        /*---------------------------------------------------*/
+        case H_DEVTXTIME:
+            if (++devtxretries > H_RETRIES) {
+                write_log( "HydraDevTX: Too many errors");
+                txState = HTX_DONE;
+                res = XFER_ABORT;
+                break;
+            }
+
+            DEBUG(('H',1,"HydraDevTX: Timeout - Retry %u", devtxretries));
+            sline( "HydraDevTX: Timeout - Retry %u", devtxretries );
+
+            devtxtimer = h_timer_reset();
+            devtxstate = HTD_DATA;
+
+            DEBUG(('H',4,"devtxtimer: %d", devtxtimer));
+
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_START:
+            if (txState == HTX_START || txState == HTX_SWAIT) {
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_INIT;
+                braindead = h_timer_set(H_BRAINDEAD);
+            }
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_INIT:
+            if (rxState == HRX_INIT) {
+                word rxtx;
+
+                p = (char *) rxBuf;
+                p += strlen(p) + 1;
+                q = p + strlen(p) + 1;
+                rxtx = (char *) q - (char *) rxBuf + strlen(q) + 1;
+
+                rxoptions  = options | HUNN_OPTIONS;
+                rxoptions |= get_flags(q,h_flags);
+                rxoptions &= get_flags(p,h_flags);
+                rxoptions &= hoCAN;
+                if (rxoptions < (options & HNEC_OPTIONS)) {
+                    write_log( "Hydra: Incompatible on this link" );
+                    txState = HTX_DONE;
+                    res = XFER_ABORT;
                     break;
-                 }
+                }
 
-                 if (++txretries > H_RETRIES) {
-                     write_log( "Hydra: Too many errors" );
-                     txState = HTX_DONE;
-                     res = XFER_ABORT;
-                     break;
-                 }
+                p = (char *) rxBuf + rxtx;
+                DEBUG(('H',5,"p='%s'", p));
 
-                 DEBUG(('H',1,"Hydra: Timeout - Retry %u", txretries));
-                 sline( "Hydra: Timeout - Retry %u", txretries );
+                rxwindow = txwindow = 0L;
+                sscanf(p,"%08lx%08lx", (dword *) &rxwindow, (dword *) &txwindow);
 
-                 txtimer = h_timer_reset();
+                DEBUG(('H',5,"rxwindow: %ld", rxwindow));
+                DEBUG(('H',5,"txwindow: %ld", txwindow));
+                DEBUG(('H',5,"hydra_rxwindow: %ld", hydra_rxwindow));
+                DEBUG(('H',5,"hydra_txwindow: %ld", hydra_txwindow));
 
-                 switch (txState) {
-                     case HTX_SWAIT:    txState = HTX_START; break;
-                     case HTX_INITACK:  txState = HTX_INIT;  break;
-                     case HTX_FINFOACK: txState = HTX_FINFO; break;
-                     case HTX_DATAACK:  txState = HTX_XDATA; break;
-                     case HTX_EOFACK:   txState = HTX_EOF;   break;
-                     case HTX_ENDACK:   txState = HTX_END;   break;
-                 }
-                 break;
+                if ( rxwindow < 0L ) {
+                    rxwindow = 0L;
+                }
 
-            /*---------------------------------------------------*/
-            case H_DEVTXTIME:
-                 if (++devtxretries > H_RETRIES) {
-                     write_log( "HydraDevTX: Too many errors");
-                     txState = HTX_DONE;
-                     res = XFER_ABORT;
-                     break;
-                 }
+                if ( hydra_rxwindow && ( !rxwindow || hydra_rxwindow < rxwindow )) {
+                    rxwindow = hydra_rxwindow;
+                }
 
-                 DEBUG(('H',1,"HydraDevTX: Timeout - Retry %u", devtxretries));
-                 sline( "HydraDevTX: Timeout - Retry %u", devtxretries );
+                if ( txwindow < 0L) {
+                    txwindow = 0L;
+                }
 
-                 devtxtimer = h_timer_reset();
-                 devtxstate = HTD_DATA;
+                if ( hydra_txwindow && ( !txwindow || hydra_txwindow < txwindow )) {
+                    txwindow = hydra_txwindow;
+                }
 
-                 DEBUG(('H',4,"devtxtimer: %d", devtxtimer));
+                DEBUG(('H',5,"rxwindow: %ld", rxwindow));
+                DEBUG(('H',5,"txwindow: %ld", txwindow));
 
-                 break;
+                p += ((int) strlen(p)) + 1;
+                xstrcpy( txpktprefix, p, H_PKTPREFIX );
+                txpktprefix[H_PKTPREFIX] = '\0';
 
-            /*---------------------------------------------------*/
-            case HPKT_START:
-                 if (txState == HTX_START || txState == HTX_SWAIT) {
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_INIT;
-                     braindead = h_timer_set(H_BRAINDEAD);
-                 }
-                 break;
+                if ( !batchesdone ) {
+                    long revstamp;
 
-            /*---------------------------------------------------*/
-            case HPKT_INIT:
-                 if (rxState == HRX_INIT) {
-                     word rxtx;
+                    p = (char *) rxBuf;
+                    sscanf(p,"%08lx", (dword *) &revstamp);
+                    p += 8;
 
-                     p = (char *) rxBuf;
-                     p += strlen(p) + 1;
-                     q = p + strlen(p) + 1;
-                     rxtx = (char *) q - (char *) rxBuf + strlen(q) + 1;
+                    DEBUG(('H',1,"Hydra: Remote HydraRev='%s'", h_revdate(revstamp)));
 
-                     rxoptions  = options | HUNN_OPTIONS;
-                     rxoptions |= get_flags(q,h_flags);
-                     rxoptions &= get_flags(p,h_flags);
-                     rxoptions &= hoCAN;
-                     if (rxoptions < (options & HNEC_OPTIONS)) {
-                        write_log( "Hydra: Incompatible on this link" );
+                    if (( q = strchr( p, ',' )) != NULL ) {
+                        *q = ' ';
+                        if (( q = strchr( q + 1, ' ' )) != NULL ) {
+                            *q = '/';
+                        }
+                    }
+
+                    DEBUG(('H',1,"Hydra: Remote App.Info='%s'", p));
+
+                    put_flags( (char *) rxBuf, h_flags, rxoptions );
+
+                    if ( txwindow || rxwindow )
+                        write_log("Hydra: Using link options '%s', Window [%ld/%ld]",
+                                  rxBuf, txwindow, rxwindow);
+                    else {
+                        write_log("Hydra: Using link options '%s'", rxBuf);
+                    }
+                }
+
+                chattimer = (rxoptions & HOPT_DEVICE) ? 0L : 1L;
+
+                txoptions = rxoptions;
+                rxState = HRX_FINFO;
+            }
+
+            txpkt((word) 0, HPKT_INITACK );
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_INITACK:
+            if (txState == HTX_INIT || txState == HTX_INITACK) {
+                braindead = h_timer_set(H_BRAINDEAD);
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_RINIT;
+            }
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_FINFO:
+            if (rxState == HRX_FINFO) {
+                braindead = h_timer_set(H_BRAINDEAD);
+                if ( !rxBuf[0] ) {
+                    DEBUG(('H',1,"HRecv: End of batch"));
+                    qpreset( 0 );
+                    rxPos = 0L;
+                    rxState = HRX_DONE;
+                    batchesdone++;
+                } else {
+                    dword count;
+
+                    rxfsize = rxftime = 0L;
+                    sscanf((char *) rxBuf, "%08lx%08lx", &rxftime, (dword *) &rxfsize);
+                    sscanf((char *) rxBuf + 32, "%08lx", &count);
+
+                    if ( !recvf.allf && (int) count) {
+                        recvf.allf = (int) count;
+                    }
+
+                    p = (char *) rxBuf + 40;
+
+                    DEBUG(('H',1,"HRecv: Get SFN: %s", p));
+
+                    if ( strlen( p ) + 41 < rxpktlen ) {
+                        p += strlen( p ) + 1;
+                        DEBUG(('H',1,"HRecv: Get LFN: %s", p));
+                    } else {
+                        DEBUG(('H',1,"HRecv: No LFN present"));
+                    }
+
+                    switch( rxopen(p, rxftime, rxfsize, &rxfd )) {
+                    case FOP_SKIP:
+                        rxPos = H_SKIP;
+                        break;
+
+                    case FOP_SUSPEND:
+                        rxPos = H_SUSPEND;
+                        break;
+
+                    case FOP_CONT:
+                    case FOP_OK:
+                        rxoffset = rxPos = ftell(rxfd);
+                        /* rxStart = 0L; */
+                        rxtimer = h_timer_reset();
+                        rxretries = 0;
+                        rxlastsync = 0L;
+                        rxsyncid = 0L;
+                        hydra_status(false);
+                        rxState = HRX_DATA;
+                        break;
+                    }
+
+                    qpfrecv();
+                }
+            } else if (rxState == HRX_DONE) {
+                rxPos = (!rxBuf[0]) ? 0L : H_SUSPEND /* -2L */;
+            }
+
+            hydra_putlong( txbufin, (dword) rxPos );
+            txpkt((word) LONGx1, HPKT_FINFOACK);
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_FINFOACK:
+            if (txState == HTX_FINFO || txState == HTX_FINFOACK) {
+                braindead = h_timer_set(H_BRAINDEAD);
+                txretries = 0;
+                if ( !txfd ) {
+                    txtimer = h_timer_set(H_IDLE);
+                    txState = HTX_REND;
+                } else {
+                    txtimer = h_timer_reset();
+                    txPos = hydra_getlong( rxBuf );
+
+                    if ( txPos < 0L ) {
+                        switch( txPos ) {
+                        case H_SKIP:
+                            txclose( &txfd, FOP_SKIP );
+                            return XFER_SKIP;
+
+                        case H_SUSPEND:
+                            txclose( &txfd, FOP_SUSPEND );
+                            return XFER_SUSPEND;
+
+                        default:
+                            txclose( &txfd, FOP_ERROR );
+                            return XFER_ABORT;
+                        }
+                    } else { /* txPos >= 0L */
+                        txStart = 0L;
+                        txoffset = txPos;
+                        txlastack = txPos;
+                        hydra_status(true);
+
+                        if ( txPos > 0L ) {
+                            if ( fseek( txfd, txPos, SEEK_SET ) < 0L ) {
+                                txclose( &txfd, FOP_ERROR );
+                                txfd = NULL;
+                                txPos = H_SUSPEND;
+                                txState = HTX_EOF;
+                                break;
+                            }
+                            sendf.soff = txPos;
+                        }
+                        txState = HTX_XDATA;
+                    }
+                }
+            }
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_DATA:
+            if (rxState == HRX_DATA) {
+                long gotpos = hydra_getlong( rxBuf );
+
+                if ( rxstatus ) {
+                    rxPos = ( rxstatus == RX_SUSPEND ) ? H_SUSPEND : H_SKIP;
+                    rxclose( &rxfd, ( rxstatus == RX_SUSPEND ) ?
+                             FOP_SUSPEND : FOP_SKIP );
+                    rxretries = 1;
+                    rxsyncid++;
+                    hydra_putlong( txbufin, (dword) rxPos );
+                    hydra_putlong( txbufin + (LONGx1), (dword) 0L );
+                    hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
+                    txpkt((word) LONGx3, HPKT_RPOS );
+                    rxtimer = h_timer_set( timeOut );
+                    break;
+                }
+
+                if ( gotpos != rxPos || gotpos < 0L ) {
+                    DEBUG(('H',1,"Hydra: bad pos rx/want %ld/%ld", gotpos, rxPos ));
+
+                    if ( gotpos <= rxlastsync) {
+                        rxtimer = h_timer_reset();
+                        rxretries = 0;
+                    }
+                    rxlastsync = gotpos;
+
+                    if (!h_timer_running(rxtimer) ||
+                            h_timer_expired_agl(rxtimer, h_timer_get())) {
+
+#ifdef NEED_DEBUG
+                        word oBlkLen = rxBlkLen;
+#endif
+
+                        if (rxretries > 4) {
+                            if (txState < HTX_REND && !originator && !hdxlink) {
+                                hdxlink = true;
+                                rxretries = 0;
+                            }
+                        }
+                        if (++rxretries > H_RETRIES) {
+                            write_log( "HRecv: Too many errors");
+                            txState = HTX_DONE;
+                            res = XFER_ABORT;
+                            break;
+                        }
+                        if ( rxretries == 1 || rxretries == 4 ) {
+                            rxsyncid++;
+                        }
+
+                        rxBlkLen >>= 1;
+                        i = hydra_adjust_blklen( rxBlkLen );
+
+                        DEBUG(('H',1,"HRecv: Bad pkt at %ld - Retry %u (oldblklen=%u, newblklen=%u)",
+                               rxPos, rxretries, oBlkLen, i));
+                        sline("HRecv: Bad pkt at %ld - Retry %u (newblklen=%u)",
+                              rxPos,rxretries,i);
+
+                        hydra_putlong( txbufin, (dword) rxPos );
+                        hydra_putlong( txbufin + (LONGx1), (dword) i );
+                        hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
+                        txpkt((word) LONGx3, HPKT_RPOS);
+                        rxtimer = h_timer_set( timeOut );
+                    }
+                } else {
+                    char tmp[MAX_PATH];
+
+                    braindead = h_timer_set(H_BRAINDEAD);
+                    rxpktlen -= (word) (LONGx1);
+                    rxBlkLen = rxpktlen;
+
+                    snprintf(tmp, MAX_PATH, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
+                    if ( stat( tmp, &statf ) && errno == ENOENT ) {
+                        rxclose( &rxfd, FOP_SKIP );
+                        rxPos = H_SKIP;
+                        rxretries = 1;
+                        rxsyncid++;
+                        hydra_putlong( txbufin, (dword) rxPos );
+                        hydra_putlong( txbufin + (LONGx1), (dword) 0L );
+                        hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
+                        txpkt((word) LONGx3, HPKT_RPOS);
+                        rxtimer = h_timer_set(timeOut);
+                        break;
+                    }
+
+                    if ( fwrite( rxBuf + ((int) (LONGx1)), rxpktlen, 1, rxfd ) != 1) {
+                        DEBUG(('H',4,"HRecv: File write error"));
+                        sline("HRecv: File write error");
+
+                        rxclose( &rxfd, FOP_ERROR );
+                        rxPos = H_SUSPEND;
+                        rxretries = 1;
+                        rxsyncid++;
+                        hydra_putlong( txbufin, (dword) rxPos );
+                        hydra_putlong( txbufin + (LONGx1), (dword) 0L );
+                        hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
+                        txpkt((word) LONGx3, HPKT_RPOS);
+                        rxtimer = h_timer_set(timeOut);
+                        break;
+                    }
+                    rxretries = 0;
+                    rxtimer = h_timer_reset();
+                    rxlastsync = rxPos;
+                    rxPos += rxpktlen;
+                    if (rxwindow) {
+                        hydra_putlong( txbufin, (dword) rxPos );
+                        txpkt((word) LONGx1, HPKT_DATAACK);
+                    }
+                    /*
+                    if (!rxStart)
+                       rxStart = time(NULL) - ((rxpktlen * 10) / effbaud);
+                    */
+                    hydra_status(false);
+                }/*badpkt*/
+            }/*rxState==HRX_DATA*/
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_DATAACK:
+            if (txState == HTX_XDATA || txState == HTX_DATAACK || /*AGL:06jan94*/
+                    txState == HTX_XWAIT ||			     /*AGL:06jan94*/
+                    txState == HTX_EOF || txState == HTX_EOFACK) {    /*AGL:06jan94*/
+
+                long txla = hydra_getlong( rxBuf );
+
+                if (txwindow && txla > txlastack) {
+                    txlastack = txla;
+                    if (txState == HTX_DATAACK &&
+                            (txPos < (txlastack + txwindow))) {
+                        txState = HTX_XDATA;
+                        txretries = 0;
+                        txtimer = h_timer_reset();
+                    }
+                }
+            }
+            break;
+
+        /*---------------------------------------------------*/
+        case HPKT_RPOS:
+            if (txState == HTX_XDATA || txState == HTX_DATAACK ||	/*AGL:06jan94*/
+                    txState == HTX_XWAIT ||				/*AGL:06jan94*/
+                    txState == HTX_EOF || txState == HTX_EOFACK) {	/*AGL:06jan94*/
+
+                long txsid = hydra_getlong( rxBuf + (LONGx2));
+
+#ifdef NEED_DEBUG
+                word oBlkLen;
+#endif
+                if ( txsid != txsyncid) {
+                    txsyncid = txsid;
+                    txretries = 1;
+                }					/*AGL:14may93*/
+                else {				/*AGL:14may93*/
+                    if (++txretries > H_RETRIES) {
+                        write_log("HSend: too many errors");
                         txState = HTX_DONE;
                         res = XFER_ABORT;
                         break;
-                     }
-
-                     p = (char *) rxBuf + rxtx;
-                     DEBUG(('H',5,"p='%s'", p));
-
-                     rxwindow = txwindow = 0L;
-                     sscanf(p,"%08lx%08lx", (dword *) &rxwindow, (dword *) &txwindow);
-                     
-                     DEBUG(('H',5,"rxwindow: %ld", rxwindow));
-                     DEBUG(('H',5,"txwindow: %ld", txwindow));
-                     DEBUG(('H',5,"hydra_rxwindow: %ld", hydra_rxwindow));
-                     DEBUG(('H',5,"hydra_txwindow: %ld", hydra_txwindow));
-                     
-                     if ( rxwindow < 0L )
-                         rxwindow = 0L;
-                     
-                     if ( hydra_rxwindow && ( !rxwindow || hydra_rxwindow < rxwindow ))
-                         rxwindow = hydra_rxwindow;
-
-                     if ( txwindow < 0L)
-                         txwindow = 0L;
-                     
-                     if ( hydra_txwindow && ( !txwindow || hydra_txwindow < txwindow ))
-                         txwindow = hydra_txwindow;
-
-                     DEBUG(('H',5,"rxwindow: %ld", rxwindow));
-                     DEBUG(('H',5,"txwindow: %ld", txwindow));
-
-                     p += ((int) strlen(p)) + 1;
-                     xstrcpy( txpktprefix, p, H_PKTPREFIX );
-                     txpktprefix[H_PKTPREFIX] = '\0';
-
-                     if ( !batchesdone ) {
-                         long revstamp;
-
-                         p = (char *) rxBuf;
-                         sscanf(p,"%08lx", (dword *) &revstamp);
-                         p += 8;
-                         
-                         DEBUG(('H',1,"Hydra: Remote HydraRev='%s'", h_revdate(revstamp)));
-
-                         if (( q = strchr( p, ',' )) != NULL ) {
-                             *q = ' ';
-                             if (( q = strchr( q + 1, ' ' )) != NULL )
-                                 *q = '/';
-                         }
-
-                         DEBUG(('H',1,"Hydra: Remote App.Info='%s'", p));
-
-                         put_flags( (char *) rxBuf, h_flags, rxoptions );
-
-                         if ( txwindow || rxwindow )
-                             write_log("Hydra: Using link options '%s', Window [%ld/%ld]",
-                                 rxBuf, txwindow, rxwindow);
-                         else
-                             write_log("Hydra: Using link options '%s'", rxBuf);
-                     }
-
-                     chattimer = (rxoptions & HOPT_DEVICE) ? 0L : 1L;
-
-                     txoptions = rxoptions;
-                     rxState = HRX_FINFO;
-                 }
-
-                 txpkt((word) 0, HPKT_INITACK );
-                 break;
-
-            /*---------------------------------------------------*/
-            case HPKT_INITACK:
-                 if (txState == HTX_INIT || txState == HTX_INITACK) {
-                     braindead = h_timer_set(H_BRAINDEAD);
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_RINIT;
-                 }
-                 break;
-
-            /*---------------------------------------------------*/
-            case HPKT_FINFO:
-                 if (rxState == HRX_FINFO) {
-                     braindead = h_timer_set(H_BRAINDEAD);
-                     if ( !rxBuf[0] ) {
-                         DEBUG(('H',1,"HRecv: End of batch"));
-                         qpreset( 0 );
-                         rxPos = 0L;
-                         rxState = HRX_DONE;
-                         batchesdone++;
-                     }
-                     else {
-                         dword count;
-
-                         rxfsize = rxftime = 0L;
-                         sscanf((char *) rxBuf, "%08lx%08lx", &rxftime, (dword *) &rxfsize);
-                         sscanf((char *) rxBuf + 32, "%08lx", &count);
-
-                         if ( !recvf.allf && (int) count)
-                             recvf.allf = (int) count;
-
-                         p = (char *) rxBuf + 40;
-
-                         DEBUG(('H',1,"HRecv: Get SFN: %s", p));
-                         
-                         if ( strlen( p ) + 41 < rxpktlen ) {
-                             p += strlen( p ) + 1;
-                             DEBUG(('H',1,"HRecv: Get LFN: %s", p));
-                         } else {
-                             DEBUG(('H',1,"HRecv: No LFN present"));
-                         }
-
-                         switch( rxopen(p, rxftime, rxfsize, &rxfd )) {
-                             case FOP_SKIP:
-                                 rxPos = H_SKIP;
-                                 break;
-
-                             case FOP_SUSPEND:
-                                 rxPos = H_SUSPEND;
-                                 break;
-
-                             case FOP_CONT:
-                             case FOP_OK:
-                                 rxoffset = rxPos = ftell(rxfd);
-                                 /* rxStart = 0L; */
-                                 rxtimer = h_timer_reset();
-                                 rxretries = 0;
-                                 rxlastsync = 0L;
-                                 rxsyncid = 0L;
-                                 hydra_status(false);
-                                 rxState = HRX_DATA;
-                                 break;
-                         }
-
-                         qpfrecv();
-                     }
-                 }
-                 else if (rxState == HRX_DONE)
-                     rxPos = (!rxBuf[0]) ? 0L : H_SUSPEND /* -2L */;
-
-                 hydra_putlong( txbufin, (dword) rxPos );
-                 txpkt((word) LONGx1, HPKT_FINFOACK);
-                 break;
-
-            /*---------------------------------------------------*/
-            case HPKT_FINFOACK:
-                 if (txState == HTX_FINFO || txState == HTX_FINFOACK) {
-                     braindead = h_timer_set(H_BRAINDEAD);
-                     txretries = 0;
-                     if ( !txfd ) {
-                         txtimer = h_timer_set(H_IDLE);
-                         txState = HTX_REND;
-                     }
-                     else {
-                         txtimer = h_timer_reset();
-                         txPos = hydra_getlong( rxBuf );
-
-                         if ( txPos < 0L ) {
-                             switch( txPos ) {
-                                 case H_SKIP:
-                                     txclose( &txfd, FOP_SKIP );
-                                     return XFER_SKIP;
-
-                                 case H_SUSPEND:
-                                     txclose( &txfd, FOP_SUSPEND );
-                                     return XFER_SUSPEND;
-
-                                 default:
-                                     txclose( &txfd, FOP_ERROR );
-                                     return XFER_ABORT;
-                             }
-                         } else { /* txPos >= 0L */
-                             txStart = 0L;
-                             txoffset = txPos;
-                             txlastack = txPos;
-                             hydra_status(true);
-                             
-                             if ( txPos > 0L ) {
-                                 if ( fseek( txfd, txPos, SEEK_SET ) < 0L ) {
-                                     txclose( &txfd, FOP_ERROR );
-                                     txfd = NULL;
-                                     txPos = H_SUSPEND;
-                                     txState = HTX_EOF;
-                                     break;
-                                 }
-                                 sendf.soff = txPos;
-                             }
-                             txState = HTX_XDATA;
-                         }
-                     }
-                 }
-                 break;
-
-            /*---------------------------------------------------*/
-            case HPKT_DATA:
-                 if (rxState == HRX_DATA) {
-                     long gotpos = hydra_getlong( rxBuf );
-
-                     if ( rxstatus ) {
-                         rxPos = ( rxstatus == RX_SUSPEND ) ? H_SUSPEND : H_SKIP;
-                         rxclose( &rxfd, ( rxstatus == RX_SUSPEND ) ?
-                             FOP_SUSPEND : FOP_SKIP );
-                         rxretries = 1;
-                         rxsyncid++;
-                         hydra_putlong( txbufin, (dword) rxPos );
-                         hydra_putlong( txbufin + (LONGx1), (dword) 0L );
-                         hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
-                         txpkt((word) LONGx3, HPKT_RPOS );
-                         rxtimer = h_timer_set( timeOut );
-                         break;
-                     }
-
-                     if ( gotpos != rxPos || gotpos < 0L ) {
-                         DEBUG(('H',1,"Hydra: bad pos rx/want %ld/%ld", gotpos, rxPos ));
-
-                         if ( gotpos <= rxlastsync) {
-                             rxtimer = h_timer_reset();
-                             rxretries = 0;
-                         }
-                         rxlastsync = gotpos;
-
-                         if (!h_timer_running(rxtimer) || 
-                             h_timer_expired_agl(rxtimer, h_timer_get())) {
-
-#ifdef NEED_DEBUG
-                             word oBlkLen = rxBlkLen;
-#endif
-
-                             if (rxretries > 4) {
-                                 if (txState < HTX_REND && !originator && !hdxlink) {
-                                     hdxlink = true;
-                                     rxretries = 0;
-                                 }
-                             }
-                             if (++rxretries > H_RETRIES) {
-                                 write_log( "HRecv: Too many errors");
-                                 txState = HTX_DONE;
-                                 res = XFER_ABORT;
-                                 break;
-                             }
-                             if ( rxretries == 1 || rxretries == 4 )
-                                 rxsyncid++;
-
-                             rxBlkLen >>= 1;
-                             i = hydra_adjust_blklen( rxBlkLen );
-
-                             DEBUG(('H',1,"HRecv: Bad pkt at %ld - Retry %u (oldblklen=%u, newblklen=%u)",
-                                 rxPos, rxretries, oBlkLen, i));
-                             sline("HRecv: Bad pkt at %ld - Retry %u (newblklen=%u)",
-                                 rxPos,rxretries,i);
-                             
-                             hydra_putlong( txbufin, (dword) rxPos );
-                             hydra_putlong( txbufin + (LONGx1), (dword) i );
-                             hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
-                             txpkt((word) LONGx3, HPKT_RPOS);
-                             rxtimer = h_timer_set( timeOut );
-                         }
-                     } else {
-                         char tmp[MAX_PATH];
-
-                         braindead = h_timer_set(H_BRAINDEAD);
-                         rxpktlen -= (word) (LONGx1);
-                         rxBlkLen = rxpktlen;
-
-                         snprintf(tmp, MAX_PATH, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
-                         if ( stat( tmp, &statf ) && errno == ENOENT ) {
-                             rxclose( &rxfd, FOP_SKIP );
-                             rxPos = H_SKIP;
-                             rxretries = 1;
-                             rxsyncid++;
-                             hydra_putlong( txbufin, (dword) rxPos );
-                             hydra_putlong( txbufin + (LONGx1), (dword) 0L );
-                             hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
-                             txpkt((word) LONGx3, HPKT_RPOS);
-                             rxtimer = h_timer_set(timeOut);
-                             break;
-                         }
-
-                         if ( fwrite( rxBuf + ((int) (LONGx1)), rxpktlen, 1, rxfd ) != 1) {
-                             DEBUG(('H',4,"HRecv: File write error"));
-                             sline("HRecv: File write error");
-
-                             rxclose( &rxfd, FOP_ERROR );
-                             rxPos = H_SUSPEND;
-                             rxretries = 1;
-                             rxsyncid++;
-                             hydra_putlong( txbufin, (dword) rxPos );
-                             hydra_putlong( txbufin + (LONGx1), (dword) 0L );
-                             hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
-                             txpkt((word) LONGx3, HPKT_RPOS);
-                             rxtimer = h_timer_set(timeOut);
-                             break;
-                         }
-                         rxretries = 0;
-                         rxtimer = h_timer_reset();
-                         rxlastsync = rxPos;
-                         rxPos += rxpktlen;
-                         if (rxwindow) {
-                             hydra_putlong( txbufin, (dword) rxPos );
-                             txpkt((word) LONGx1, HPKT_DATAACK);
-                         }
-                         /*
-                         if (!rxStart)
-                            rxStart = time(NULL) - ((rxpktlen * 10) / effbaud);
-                         */
-                         hydra_status(false);
-                     }/*badpkt*/
-                 }/*rxState==HRX_DATA*/
-                 break;
-
-            /*---------------------------------------------------*/
-            case HPKT_DATAACK:
-  	       if (txState == HTX_XDATA || txState == HTX_DATAACK || /*AGL:06jan94*/
-                   txState == HTX_XWAIT ||			     /*AGL:06jan94*/
-                   txState == HTX_EOF || txState == HTX_EOFACK) {    /*AGL:06jan94*/
-                    
-                    long txla = hydra_getlong( rxBuf );
-                    
-                    if (txwindow && txla > txlastack) {
-                       txlastack = txla;
-                       if (txState == HTX_DATAACK &&
-                           (txPos < (txlastack + txwindow))) {
-                          txState = HTX_XDATA;
-                          txretries = 0;
-                          txtimer = h_timer_reset();
-                       }
                     }
-                 }
-                 break;
+                    if (txretries != 4) {
+                        break;    /*AGL:14may93*/
+                    }
+                }
 
-            /*---------------------------------------------------*/
-            case HPKT_RPOS:
-                 if (txState == HTX_XDATA || txState == HTX_DATAACK ||	/*AGL:06jan94*/
-                     txState == HTX_XWAIT ||				/*AGL:06jan94*/
-                     txState == HTX_EOF || txState == HTX_EOFACK) {	/*AGL:06jan94*/
+                txtimer = h_timer_reset();
+                txPos = hydra_getlong( rxBuf );
+                if (txPos < 0L) {
+                    if ( txfd ) {
+                        DEBUG(('H',1,"HSend: %s %s",
+                               (txPos == H_SUSPEND) ? "Suspending" :
+                               (txPos == H_SKIP) ? "Skipping": "Strange skipping",
+                               sendf.fname));
+                        sline("HSend: %s %s",
+                              (txPos == H_SUSPEND) ? "Suspending" :
+                              (txPos == H_SKIP) ? "Skipping": "Strange skipping",
+                              sendf.fname);
 
-                     long txsid = hydra_getlong( rxBuf + (LONGx2));
+                        txclose( &txfd, txPos == H_SUSPEND ? FOP_SUSPEND: FOP_SKIP );
+                        txfd = NULL;
+                        txState = HTX_EOF;
+                    }
+                    txPos = (txPos == H_SKIP ? H_SKIP : H_SUSPEND);
+                    /* txPos = -2L; */
+                    break;
+                }
 
-#ifdef NEED_DEBUG
-                     word oBlkLen;
-#endif
-                     if ( txsid != txsyncid) {
-                         txsyncid = txsid;
-                         txretries = 1;
-                     }					/*AGL:14may93*/
-                     else {				/*AGL:14may93*/
-                         if (++txretries > H_RETRIES) {
-                             write_log("HSend: too many errors");
-                             txState = HTX_DONE;
-                             res = XFER_ABORT;
-                             break;
-                         }
-                         if (txretries != 4) break; 	/*AGL:14may93*/
-                     }
-
-                     txtimer = h_timer_reset();
-                     txPos = hydra_getlong( rxBuf );
-                     if (txPos < 0L) {
-                         if ( txfd ) {
-                             DEBUG(('H',1,"HSend: %s %s",
-                                 (txPos == H_SUSPEND) ? "Suspending" :
-                                 (txPos == H_SKIP) ? "Skipping": "Strange skipping",
-                                 sendf.fname));
-                             sline("HSend: %s %s",
-                                 (txPos == H_SUSPEND) ? "Suspending" :
-                                 (txPos == H_SKIP) ? "Skipping": "Strange skipping",
-                                 sendf.fname);
-
-                             txclose( &txfd, txPos == H_SUSPEND ? FOP_SUSPEND: FOP_SKIP );
-                             txfd = NULL;
-                             txState = HTX_EOF;
-                         }
-                         txPos = (txPos == H_SKIP ? H_SKIP : H_SUSPEND);
-                         /* txPos = -2L; */
-                         break;
-                     }
-
-                     txsid = hydra_getlong( rxBuf + (LONGx1));
+                txsid = hydra_getlong( rxBuf + (LONGx1));
 
 #ifdef NEED_DEBUG
-                     oBlkLen = txBlkLen;
+                oBlkLen = txBlkLen;
 #endif
-                     if (txBlkLen > (word) txsid )
-                         txBlkLen = (word) txsid;
-                     else
-                         txBlkLen >>= 1;
-                     txBlkLen = hydra_adjust_blklen( txBlkLen );
-                     txgoodbytes = 0;
-                     txgoodneeded += (word) (txMaxBlkLen << 1);		/*AGL:23feb93*/
-                     if (txgoodneeded > txMaxBlkLen << 3)		/*AGL:23feb93*/
-                         txgoodneeded = (word) (txMaxBlkLen << 3);	/*AGL:23feb93*/
+                if (txBlkLen > (word) txsid ) {
+                    txBlkLen = (word) txsid;
+                } else {
+                    txBlkLen >>= 1;
+                }
+                txBlkLen = hydra_adjust_blklen( txBlkLen );
+                txgoodbytes = 0;
+                txgoodneeded += (word) (txMaxBlkLen << 1);		/*AGL:23feb93*/
+                if (txgoodneeded > txMaxBlkLen << 3) {	/*AGL:23feb93*/
+                    txgoodneeded = (word) (txMaxBlkLen << 3);    /*AGL:23feb93*/
+                }
 
-                     hydra_status(true);
-                     sline("HSend: Resending from offset %ld (newblklen=%u)",txPos,txBlkLen);
+                hydra_status(true);
+                sline("HSend: Resending from offset %ld (newblklen=%u)",txPos,txBlkLen);
 
-                     DEBUG(('H',1,"HSend: Resending from offset %ld (oldblklen: %u, newblklen=%u)",
-                         txPos, oBlkLen, txBlkLen));
+                DEBUG(('H',1,"HSend: Resending from offset %ld (oldblklen: %u, newblklen=%u)",
+                       txPos, oBlkLen, txBlkLen));
 
-                     if ( fseek(txfd, txPos, SEEK_SET) < 0L ) {
-                         txclose(&txfd, FOP_ERROR);
-                         txfd = NULL;
-                         txPos = H_SUSPEND;
-                         txState = HTX_EOF;
-                         break;
-                     }
+                if ( fseek(txfd, txPos, SEEK_SET) < 0L ) {
+                    txclose(&txfd, FOP_ERROR);
+                    txfd = NULL;
+                    txPos = H_SUSPEND;
+                    txState = HTX_EOF;
+                    break;
+                }
 
-                     if (txState != HTX_XWAIT)
-                         txState = HTX_XDATA;
-                 }
-                 break;
+                if (txState != HTX_XWAIT) {
+                    txState = HTX_XDATA;
+                }
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HPKT_EOF:
-                 if (rxState == HRX_DATA) {
+        /*---------------------------------------------------*/
+        case HPKT_EOF:
+            if (rxState == HRX_DATA) {
 
-                     long foffset = hydra_getlong( rxBuf );
+                long foffset = hydra_getlong( rxBuf );
 
-                     if ( foffset < 0L) {
-                         rxclose( &rxfd, FOP_SKIP );
-                         rxState = HRX_FINFO;
-                         braindead = h_timer_set(H_BRAINDEAD);
-                     } else if ( foffset != rxPos) {
-                         if ( foffset <= rxlastsync ) {
-                             rxtimer = h_timer_reset();
-                             rxretries = 0;
-                         }
+                if ( foffset < 0L) {
+                    rxclose( &rxfd, FOP_SKIP );
+                    rxState = HRX_FINFO;
+                    braindead = h_timer_set(H_BRAINDEAD);
+                } else if ( foffset != rxPos) {
+                    if ( foffset <= rxlastsync ) {
+                        rxtimer = h_timer_reset();
+                        rxretries = 0;
+                    }
 
-                         rxlastsync = foffset;
+                    rxlastsync = foffset;
 
-                         if ( !h_timer_running(rxtimer) || 
-                             h_timer_expired_agl(rxtimer, h_timer_get())) {
+                    if ( !h_timer_running(rxtimer) ||
+                            h_timer_expired_agl(rxtimer, h_timer_get())) {
 
-                             if (++rxretries > H_RETRIES) {
-                                 write_log("HRecv: Too many errors");
-                                 txState = HTX_DONE;
-                                 res = XFER_ABORT;
-                                 break;
-                             }
+                        if (++rxretries > H_RETRIES) {
+                            write_log("HRecv: Too many errors");
+                            txState = HTX_DONE;
+                            res = XFER_ABORT;
+                            break;
+                        }
 
-                             if (rxretries == 1 || rxretries == 4)  /*AGL:14may93*/
-                                 rxsyncid++;
+                        if (rxretries == 1 || rxretries == 4) { /*AGL:14may93*/
+                            rxsyncid++;
+                        }
 
-                             rxBlkLen >>= 1;
-                             i = hydra_adjust_blklen( rxBlkLen );
-                             DEBUG(('H',1,"HRecv: Bad EOF at %ld - Retry %u (newblklen=%u)",rxPos,rxretries,i));
-                             sline("HRecv: Bad EOF at %ld - Retry %u (newblklen=%u)", rxPos, rxretries, i);
+                        rxBlkLen >>= 1;
+                        i = hydra_adjust_blklen( rxBlkLen );
+                        DEBUG(('H',1,"HRecv: Bad EOF at %ld - Retry %u (newblklen=%u)",rxPos,rxretries,i));
+                        sline("HRecv: Bad EOF at %ld - Retry %u (newblklen=%u)", rxPos, rxretries, i);
 
-                             hydra_putlong( txbufin, (dword) rxPos );
-                             hydra_putlong( txbufin + (LONGx1), (dword) i );
-                             hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
-                             txpkt((word) LONGx3, HPKT_RPOS);
-                             rxtimer = h_timer_set(timeOut);
-                         }
-                     } else {
-                         rxfsize = rxPos;
-                         rxclose( &rxfd, FOP_OK );
-                         rxfd = NULL;
-                         hydra_status(false);
-                         rxState = HRX_FINFO;
-                         braindead = h_timer_set(H_BRAINDEAD);
-                     }/*skip/badeof/eof*/
-                 }/*rxState==HRX_DATA*/
+                        hydra_putlong( txbufin, (dword) rxPos );
+                        hydra_putlong( txbufin + (LONGx1), (dword) i );
+                        hydra_putlong( txbufin + (LONGx2), (dword) rxsyncid );
+                        txpkt((word) LONGx3, HPKT_RPOS);
+                        rxtimer = h_timer_set(timeOut);
+                    }
+                } else {
+                    rxfsize = rxPos;
+                    rxclose( &rxfd, FOP_OK );
+                    rxfd = NULL;
+                    hydra_status(false);
+                    rxState = HRX_FINFO;
+                    braindead = h_timer_set(H_BRAINDEAD);
+                }/*skip/badeof/eof*/
+            }/*rxState==HRX_DATA*/
 
-                 if (rxState == HRX_FINFO)
-                     txpkt((word) 0, HPKT_EOFACK );
-                 break;
+            if (rxState == HRX_FINFO) {
+                txpkt((word) 0, HPKT_EOFACK );
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HPKT_EOFACK:
-                 if (txState == HTX_EOF || txState == HTX_EOFACK) {
-                     braindead = h_timer_set(H_BRAINDEAD);
-                     if ( txfd ) {
-                         txfsize = txPos;
-                         txclose( &txfd, FOP_OK );
-                         return (XFER_OK);
-                     } else
-                         return (txPos == H_SUSPEND ? XFER_SUSPEND : XFER_SKIP);
-                 }
-                 break;
+        /*---------------------------------------------------*/
+        case HPKT_EOFACK:
+            if (txState == HTX_EOF || txState == HTX_EOFACK) {
+                braindead = h_timer_set(H_BRAINDEAD);
+                if ( txfd ) {
+                    txfsize = txPos;
+                    txclose( &txfd, FOP_OK );
+                    return (XFER_OK);
+                } else {
+                    return (txPos == H_SUSPEND ? XFER_SUSPEND : XFER_SKIP);
+                }
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HPKT_IDLE:
-                 if (txState == HTX_XWAIT) {
-                     hdxlink = false;
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_XDATA;
-                 }
-                 else if (txState >= HTX_FINFO && txState < HTX_REND)
-                     braindead = h_timer_set(H_BRAINDEAD);
-                 break;
+        /*---------------------------------------------------*/
+        case HPKT_IDLE:
+            if (txState == HTX_XWAIT) {
+                hdxlink = false;
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_XDATA;
+            } else if (txState >= HTX_FINFO && txState < HTX_REND) {
+                braindead = h_timer_set(H_BRAINDEAD);
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HPKT_END:
-                 /* special for chat, other side wants to quit */
-                 /*
-                 if (chattimer > 0L && txState == HTX_REND) {
-                     chattimer = -3L;
-                 */
-                 if ( chattimer > 1L && txState == HTX_REND ) {
-                     chattimer = 0L;
-                     break;
-                 }
+        /*---------------------------------------------------*/
+        case HPKT_END:
+            /* special for chat, other side wants to quit */
+            /*
+            if (chattimer > 0L && txState == HTX_REND) {
+                chattimer = -3L;
+            */
+            if ( chattimer > 1L && txState == HTX_REND ) {
+                chattimer = 0L;
+                break;
+            }
 
-                 if (txState == HTX_END || txState == HTX_ENDACK) {
-                     txpkt((word) 0, HPKT_END);
-                     txpkt((word) 0, HPKT_END);
-                     txpkt((word) 0, HPKT_END);
-                     
-                     txState = HTX_DONE;
-                     res = XFER_OK;
-                 }
-                 break;
+            if (txState == HTX_END || txState == HTX_ENDACK) {
+                txpkt((word) 0, HPKT_END);
+                txpkt((word) 0, HPKT_END);
+                txpkt((word) 0, HPKT_END);
 
-            /*---------------------------------------------------*/
-            case HPKT_DEVDATA:
-                 if (devrxid != hydra_getlong( rxBuf )) {
-                     hydra_devrecv();
-                     devrxid = hydra_getlong( rxBuf );
-                 }
-                 hydra_putlong( txbufin, hydra_getlong( rxBuf ));
-                 txpkt((word) LONGx1, HPKT_DEVDACK );
-                 break;
+                txState = HTX_DONE;
+                res = XFER_OK;
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HPKT_DEVDACK:
-                 if (devtxstate && (devtxid == hydra_getlong( rxBuf ))) {
-                     devtxtimer = h_timer_reset();
-                     devtxstate = HTD_DONE;
-                 }
-                 break;
+        /*---------------------------------------------------*/
+        case HPKT_DEVDATA:
+            if (devrxid != hydra_getlong( rxBuf )) {
+                hydra_devrecv();
+                devrxid = hydra_getlong( rxBuf );
+            }
+            hydra_putlong( txbufin, hydra_getlong( rxBuf ));
+            txpkt((word) LONGx1, HPKT_DEVDACK );
+            break;
 
-            /*---------------------------------------------------*/
-            default:  /* unknown packet types: IGNORE, no error! */
-                 break;
+        /*---------------------------------------------------*/
+        case HPKT_DEVDACK:
+            if (devtxstate && (devtxid == hydra_getlong( rxBuf ))) {
+                devtxtimer = h_timer_reset();
+                devtxstate = HTD_DONE;
+            }
+            break;
+
+        /*---------------------------------------------------*/
+        default:  /* unknown packet types: IGNORE, no error! */
+            break;
 
             /*---------------------------------------------------*/
         }/*switch(pkttype)*/
 
         /*----------------------------------------------------------*/
         switch (txState) {
-            /*---------------------------------------------------*/
-            case HTX_START:
-            case HTX_SWAIT:
-                 if (rxState == HRX_FINFO) {
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_INIT;
-                 }
-                 break;
+        /*---------------------------------------------------*/
+        case HTX_START:
+        case HTX_SWAIT:
+            if (rxState == HRX_FINFO) {
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_INIT;
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HTX_RINIT:
-                 if (rxState == HRX_FINFO) {
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_FINFO;
-                 }
-                 break;
+        /*---------------------------------------------------*/
+        case HTX_RINIT:
+            if (rxState == HRX_FINFO) {
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_FINFO;
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HTX_XDATA:
-                 if (rxState && hdxlink) {
-                     write_log("Hydra: %s",hdxmsg);
-                     hydra_devsend("MSG",(byte *) hdxmsg,(int) strlen(hdxmsg));
+        /*---------------------------------------------------*/
+        case HTX_XDATA:
+            if (rxState && hdxlink) {
+                write_log("Hydra: %s",hdxmsg);
+                hydra_devsend("MSG",(byte *) hdxmsg,(int) strlen(hdxmsg));
 
-                     txtimer = h_timer_set(H_IDLE);
-                     txState = HTX_XWAIT;
-                 }
-                 break;
+                txtimer = h_timer_set(H_IDLE);
+                txState = HTX_XWAIT;
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HTX_XWAIT:
-                 if (!rxState) {
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_XDATA;
-                 }
-                 break;
+        /*---------------------------------------------------*/
+        case HTX_XWAIT:
+            if (!rxState) {
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_XDATA;
+            }
+            break;
 
-            /*---------------------------------------------------*/
-            case HTX_REND:
-                 if (!rxState && !devtxstate) {
-                     /* special for chat, braindead will protect */
-                     /*
-                     if (chattimer > 0L) break;
-                     if (chattimer == 0L) chattimer = -3L;
-                     */
-                     if ( chattimer > 1L )
-                         break;
-                     chattimer = 0L;
+        /*---------------------------------------------------*/
+        case HTX_REND:
+            if (!rxState && !devtxstate) {
+                /* special for chat, braindead will protect */
+                /*
+                if (chattimer > 0L) break;
+                if (chattimer == 0L) chattimer = -3L;
+                */
+                if ( chattimer > 1L ) {
+                    break;
+                }
+                chattimer = 0L;
 
-                     txtimer = h_timer_reset();
-                     txretries = 0;
-                     txState = HTX_END;
-                 }
-                 break;
+                txtimer = h_timer_reset();
+                txretries = 0;
+                txState = HTX_END;
+            }
+            break;
 
             /*---------------------------------------------------*/
         }/*switch(txState)*/
         /* }/+while(txState&&pkttype) */
     } while (txState);
 
-    if ( txfd )
+    if ( txfd ) {
         txclose( &txfd, ( res == XFER_OK ) ? FOP_OK : FOP_ERROR );
-    if ( rxfd )
+    }
+    if ( rxfd ) {
         rxclose( &rxfd, ( res == XFER_OK ) ? FOP_OK : FOP_ERROR );
+    }
 
 
-	if ( res == XFER_ABORT ) {
-		PURGEOUT();
-		if ( tty_gothup != HUP_LINE ) {
-			DEBUG(('H',2,"Sending abortstr"));
-			PUTSTR( abortstr );
-			tnow = timer_set( 2 );
+    if ( res == XFER_ABORT ) {
+        PURGEOUT();
+        if ( tty_gothup != HUP_LINE ) {
+            DEBUG(('H',2,"Sending abortstr"));
+            PUTSTR( abortstr );
+            tnow = timer_set( 2 );
 
-			while( !timer_expired( tnow ))
-				if ( GETCHAR( 1 ) == H_DLE && ( tty_gothup != HUP_LINE ))
-					tnow = timer_set( 2 );
+            while( !timer_expired( tnow ))
+                if ( GETCHAR( 1 ) == H_DLE && ( tty_gothup != HUP_LINE )) {
+                    tnow = timer_set( 2 );
+                }
 
-			if ( tty_gothup != HUP_LINE )
-				BUFFLUSH( 5 );
-			else {
-				PURGEALL();
-			}
-		} else {
-			PURGE();
-		}
-	} else if ( batchesdone > 1 ) {
-		BUFFLUSH( 5 );
-	}
+            if ( tty_gothup != HUP_LINE ) {
+                BUFFLUSH( 5 );
+            } else {
+                PURGEALL();
+            }
+        } else {
+            PURGE();
+        }
+    } else if ( batchesdone > 1 ) {
+        BUFFLUSH( 5 );
+    }
 
     DEBUG(('H',1,"Hydra: batches done: %d", batchesdone));
 

@@ -67,8 +67,8 @@
 #define ASO	2
 
 typedef struct {
-	int z, n, f, p;
-	char *d;
+    int z, n, f, p;
+    char *d;
 } ftnaddr_t;
 
 #define FTNADDR_T(a) ftnaddr_t (a)={0,0,0,0,NULL}
@@ -76,86 +76,86 @@ typedef struct {
 #include "slists.h"
 
 typedef struct {
-	falist_t *addrs;
-	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host,*tty;
-	int options,speed,realspeed,netmail,files,type,hidnum,holded,opt;
-	time_t time,starttime;
+    falist_t *addrs;
+    char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host,*tty;
+    int options,speed,realspeed,netmail,files,type,hidnum,holded,opt;
+    time_t time,starttime;
 } ninfo_t;
 
 typedef struct _qitem_t {
-	ftnaddr_t	addr;
-	int		try, flv, what, touched, canpoll;
-	off_t		reqs, pkts;
-	off_t		sizes[F_MAX+1];
-	time_t		times[F_MAX+1];
-	time_t		onhold;
-	struct _qitem_t	*next;
+    ftnaddr_t	addr;
+    int		try, flv, what, touched, canpoll;
+    off_t		reqs, pkts;
+    off_t		sizes[F_MAX+1];
+    time_t		times[F_MAX+1];
+    time_t		onhold;
+    struct _qitem_t	*next;
 } qitem_t;
 
 typedef struct _dialine_t {
-	char *phone,*timegaps,*host;
-	int num,flags;
-	struct _dialine_t *next;
+    char *phone,*timegaps,*host;
+    int num,flags;
+    struct _dialine_t *next;
 } dialine_t;
 
 typedef struct _subst {
-	ftnaddr_t addr;
-	dialine_t *hiddens,*current;
-	int nhids;
-	struct _subst *next;
+    ftnaddr_t addr;
+    dialine_t *hiddens,*current;
+    int nhids;
+    struct _subst *next;
 } subst_t;
 
 typedef struct {
-	UINT16 phONode,
-		phDNode,
-		phYear,
-		phMonth,
-		phDay,
-		phHour,
-		phMinute,
-		phSecond,
-		phBaud,
-		phType,
-		phONet,
-		phDNet;
-	UINT8	phPCode,
-		phMajor,
-		phPass[8];
-	UINT16 phQOZone,
-		phQDZone,
-		phAuxNet,
-		phCWValidate;
-	UINT8 phPCodeHi,
-		phPRevMinor;
-	UINT16 phCaps,
-		phOZone,
-		phDZone,
-		phOPoint,
-		phDPoint;
-	UINT16 phLongData[2];
+    UINT16 phONode,
+           phDNode,
+           phYear,
+           phMonth,
+           phDay,
+           phHour,
+           phMinute,
+           phSecond,
+           phBaud,
+           phType,
+           phONet,
+           phDNet;
+    UINT8	phPCode,
+            phMajor,
+            phPass[8];
+    UINT16 phQOZone,
+           phQDZone,
+           phAuxNet,
+           phCWValidate;
+    UINT8 phPCodeHi,
+          phPRevMinor;
+    UINT16 phCaps,
+           phOZone,
+           phDZone,
+           phOPoint,
+           phDPoint;
+    UINT16 phLongData[2];
 } pkthdr_t;
 
 typedef struct {
-	UINT16 pmType;
-	UINT16 pmONode;
-	UINT16 pmDNode;
-	UINT16 pmONet;
-	UINT16 pmDNet;
-	UINT16 pmAttr;
-	UINT16 pmCost;
+    UINT16 pmType;
+    UINT16 pmONode;
+    UINT16 pmDNode;
+    UINT16 pmONet;
+    UINT16 pmDNet;
+    UINT16 pmAttr;
+    UINT16 pmCost;
 } pktmhdr_t;
 
 typedef struct {
-	int flags;
-	char *name;
-	size_t size;
-	time_t time;
+    int flags;
+    char *name;
+    size_t size;
+    time_t time;
 } bp_status_t;
 
 typedef struct {
-	int try,flags;
-	time_t htime,utime;
-	bp_status_t bp;
+    int try,flags;
+    time_t htime,utime;
+    bp_status_t bp;
 } sts_t;
 
 typedef void (*qeach_t)(const char *, const ftnaddr_t *, int, int, int);

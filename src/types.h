@@ -81,18 +81,18 @@ typedef unsigned char boolean;
 
 #ifdef WORDS_BIGENDIAN
 /* We are on non-Intel-like processor */
-	/* Host to Intel */
+/* Host to Intel */
 #	define H2I16(x)	((((x) & 0x00FF) << 8) | (((x) >> 8) & 0x00FF))
 #	define H2I32(x)	((H2I16((x) & 0x0000FFFF) << 16) | (H2I16(((x) >> 16) & 0x0000FFFF)))
-	/* Intel to host */
+/* Intel to host */
 #	define I2H16(x)	((((x) & 0x00FF) << 8) | (((x) >> 8) & 0x00FF))
 #	define I2H32(x)	((I2H16((x) & 0x0000FFFF) << 16) | (I2H16(((x) >> 16) & 0x0000FFFF)))
 #else
 /* We are on Intel-like processor */
-	/* Host to Intel */
+/* Host to Intel */
 #	define H2I16(x)	(x)
 #	define H2I32(x)	(x)
-	/* Intel to host */
+/* Intel to host */
 #	define I2H16(x)	(x)
 #	define I2H32(x)	(x)
 #endif

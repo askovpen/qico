@@ -45,22 +45,22 @@
 #define C_OCT     10
 
 typedef struct _cfgitem_t {
-	slist_t			*condition;
-	union {
-		int		v_int;
-		char		*v_char;
-		falist_t	*v_al;
-		faslist_t	*v_fasl;
-		slist_t		*v_sl;
-	} value;
-	struct _cfgitem_t	*next;
+    slist_t			*condition;
+    union {
+        int		v_int;
+        char		*v_char;
+        falist_t	*v_al;
+        faslist_t	*v_fasl;
+        slist_t		*v_sl;
+    } value;
+    struct _cfgitem_t	*next;
 } cfgitem_t;
 
 typedef struct {
-	char		*keyword;
-	int		type, flags;
-	cfgitem_t	*items;
-	char		*def_val;
+    char		*keyword;
+    int		type, flags;
+    cfgitem_t	*items;
+    char		*def_val;
 } cfgstr_t;
 
 extern	char *sigs[];
@@ -85,7 +85,7 @@ int	mkdirs(char *);
 void	rmdirs(char *);
 int	qalphasort(const void *, const void *);
 int	qscandir(const char *, char ***, int,
-		int (*)(const char *), int (*)(const void *, const void *));
+             int (*)(const char *), int (*)(const void *, const void *));
 int	fmatchcase(const char *, char ***);
 char	*fnc(char *);
 int	isdos83name(char *);

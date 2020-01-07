@@ -203,11 +203,11 @@ extern long ls_txReposCount;		/* Count of REPOSes on one position */
 extern long ls_txGoodBlocks;		/* Good blocks sent */
 
 typedef struct _ZFILEINFO {
-	char name[MAX_PATH];
-	unsigned long size;
-	time_t mtime;
-	unsigned long filesleft;
-	unsigned long bytesleft;
+    char name[MAX_PATH];
+    unsigned long size;
+    time_t mtime;
+    unsigned long filesleft;
+    unsigned long bytesleft;
 } ZFILEINFO;
 
 /* Functions */

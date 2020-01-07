@@ -39,9 +39,9 @@ documentation and/or software.
 #ifndef HAVE_MEMMOVE
 
 static void Encode PROTO_LIST
-  ((unsigned char *, UINT4 *, unsigned int));
+((unsigned char *, UINT4 *, unsigned int));
 static void Decode PROTO_LIST
-  ((UINT4 *, unsigned char *, unsigned int));
+((UINT4 *, unsigned char *, unsigned int));
 
 static void MD5_memcpy PROTO_LIST ((POINTER, POINTER, unsigned int));
 #else
@@ -159,8 +159,9 @@ unsigned int inputLen;                     /* length of input block */
     index = (unsigned int)((context->count[0] >> 3) & 0x3F);
 
     /* Update number of bits */
-    if ((context->count[0] += ((UINT4)inputLen << 3)) < ((UINT4)inputLen << 3))
+    if ((context->count[0] += ((UINT4)inputLen << 3)) < ((UINT4)inputLen << 3)) {
         context->count[1]++;
+    }
     context->count[1] += ((UINT4)inputLen >> 29);
 
     partLen = 64 - index;
@@ -170,13 +171,14 @@ unsigned int inputLen;                     /* length of input block */
         MD5_memcpy ((POINTER)&context->buffer[index], (POINTER)input, partLen);
         MD5Transform (context->state, context->buffer);
 
-        for (i = partLen; i + 63 < inputLen; i += 64)
+        for (i = partLen; i + 63 < inputLen; i += 64) {
             MD5Transform (context->state, &input[i]);
+        }
 
         index = 0;
-    }
-    else
+    } else {
         i = 0;
+    }
 
     /* Buffer remaining input */
     MD5_memcpy ((POINTER)&context->buffer[index], (POINTER)&input[i], inputLen-i);
@@ -335,7 +337,7 @@ unsigned int len;
 
     for (i = 0, j = 0; j < len; i++, j += 4)
         output[i] = ((UINT4)input[j]) | (((UINT4)input[j+1]) << 8) |
-            (((UINT4)input[j+2]) << 16) | (((UINT4)input[j+3]) << 24);
+                    (((UINT4)input[j+2]) << 16) | (((UINT4)input[j+3]) << 24);
 }
 
 
@@ -349,8 +351,9 @@ unsigned int len;
 {
     unsigned int i;
 
-    for (i = 0; i < len; i++)
+    for (i = 0; i < len; i++) {
         output[i] = input[i];
+    }
 }
 
 #endif /* HAVE_MEMMOVE */
@@ -368,8 +371,9 @@ unsigned int len;
 {
     unsigned int i;
 
-    for (i = 0; i < len; i++)
+    for (i = 0; i < len; i++) {
         ((char *)output)[i] = (char)value;
+    }
 }
 
 #endif /* HAVE_MEMSET */
@@ -432,8 +436,8 @@ md_caddr_t      digest;              /* caller digest to be filled in */
 
     /* XOR key with ipad and opad values */
     for (i=0; i<64; i++) {
-         k_ipad[i] ^= 0x36;
-         k_opad[i] ^= 0x5c;
+        k_ipad[i] ^= 0x36;
+        k_opad[i] ^= 0x5c;
     }
 
     /*
@@ -444,7 +448,7 @@ md_caddr_t      digest;              /* caller digest to be filled in */
     MD5Update(&context, k_ipad, 64);     /* start with inner pad */
     MD5Update(&context, text, text_len); /* then text of datagram */
     MD5Final(digest, &context);          /* finish up 1st pass */
-    
+
     /*
      * perform outer MD5
      */
@@ -459,7 +463,7 @@ md_caddr_t      digest;              /* caller digest to be filled in */
 
 
 void md5_cram_get(const unsigned char *secret, const unsigned char *challenge,
-         int challenge_length, unsigned char *digest)
+                  int challenge_length, unsigned char *digest)
 {
     hmac_md5( challenge, challenge_length, secret, strlen((char *) secret ), digest );
 }
@@ -467,11 +471,11 @@ void md5_cram_get(const unsigned char *secret, const unsigned char *challenge,
 
 void md5_cram_set(const unsigned char *challenge)
 {
-	long rnd=(long)random(),utm=time(NULL);
-	long pid=((long)getpid())^((long)random());
-	STORE32(challenge,rnd);
-	STORE16(challenge+4,pid)
-	STORE32(challenge+6,utm);
+    long rnd=(long)random(),utm=time(NULL);
+    long pid=((long)getpid())^((long)random());
+    STORE32(challenge,rnd);
+    STORE16(challenge+4,pid)
+    STORE32(challenge+6,utm);
 }
 
 
@@ -495,18 +499,23 @@ unsigned char *md5_challenge(const unsigned char *buf)
         char *n;
         int count;
 
-        if (( n = strstr((char *) buf, "CRAM-" )) == NULL )
+        if (( n = strstr((char *) buf, "CRAM-" )) == NULL ) {
             return NULL;
-        if (( n = strstr( n, "MD5" )) == NULL )
+        }
+        if (( n = strstr( n, "MD5" )) == NULL ) {
             return NULL;
+        }
         while( *n && *n++ != '-' );
-        if ( !*n || !isxdigit( *n ))
+        if ( !*n || !isxdigit( *n )) {
             return NULL;
+        }
         count = strspn( n, hexdigitsall );
-        if ( !count )
+        if ( !count ) {
             return NULL;
-        if ( count > 128 )
+        }
+        if ( count > 128 ) {
             count = 128;
+        }
         n[count] = '\0';		/* Just in case */
         count /= 2;
         ret = (unsigned char *) xcalloc( 1, count + 1 );
@@ -521,8 +530,9 @@ char *md5_digest(const char *pwd, const unsigned char *challenge)
     md_caddr_t digest;
     char *ret = NULL;
 
-    if ( !pwd || !challenge )
+    if ( !pwd || !challenge ) {
         return NULL;
+    }
     hmac_md5( challenge + 1, (int) challenge[0], pwd, strlen( pwd ), digest );
     ret = xcalloc( 1, MD5_DIGEST_LEN * 2 + 5 );
     bin2strhex((unsigned char *) ret, digest, MD5_DIGEST_LEN );

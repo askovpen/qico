@@ -53,111 +53,119 @@ char *hexdigitsupper = "0123456789ABCDEF";
 char *hexdigitsall = "0123456789abcdefABCDEF";
 
 char *engms[13] = {
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Any"};
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Any"
+};
 
 char *infostrs[] = {
-	"Address",
-	"Station",
-	"  Place",
-	"  Sysop",
-	"  Phone",
-	"  Flags",
-	"  Speed",
-	NULL
+    "Address",
+    "Station",
+    "  Place",
+    "  Sysop",
+    "  Phone",
+    "  Flags",
+    "  Speed",
+    NULL
 };
 
 
 
 void *_xmalloc(size_t size)
 {
-	void	*p = malloc( size );
+    void	*p = malloc( size );
 
-	if ( p )
-		return p;
+    if ( p ) {
+        return p;
+    }
 
-	write_log( "!!! xmalloc(): could not allocate %d bytes of memory", size );
-	abort();
+    write_log( "!!! xmalloc(): could not allocate %d bytes of memory", size );
+    abort();
 }
 
 
 void *_xcalloc(size_t number, size_t size)
 {
-	void	*p = calloc( number, size );
+    void	*p = calloc( number, size );
 
-	if ( p )
-		return p;
+    if ( p ) {
+        return p;
+    }
 
-	write_log( "!!! xcalloc(): could not allocate %dx%d bytes of memory", number, size );
-	abort();
+    write_log( "!!! xcalloc(): could not allocate %dx%d bytes of memory", number, size );
+    abort();
 }
 
 
 void *xrealloc(void *ptr, size_t size)
 {
-	void *p;
-	
-	if ( ptr )
-		p = realloc( ptr, size );
-	else
-		p = ptr = malloc( size );
+    void *p;
 
-	if ( p )
-		return p;
+    if ( ptr ) {
+        p = realloc( ptr, size );
+    } else {
+        p = ptr = malloc( size );
+    }
 
-	write_log( "!!! xrealloc(): could not allocate %d bytes of memory", size );
-	abort();
+    if ( p ) {
+        return p;
+    }
+
+    write_log( "!!! xrealloc(): could not allocate %d bytes of memory", size );
+    abort();
 }
 
 
 void strlwr(char *s)
 {
-	while( s && *s ) {
-		*s = tolower( *s );
-		s++;
-	}
+    while( s && *s ) {
+        *s = tolower( *s );
+        s++;
+    }
 }
 
 
 void strupr(char *s)
 {
-	while( s && *s ) {
-		*s = toupper( *s );
-		s++;
-	}
+    while( s && *s ) {
+        *s = toupper( *s );
+        s++;
+    }
 }
 
 
 void strtr(char *s, char a, char b)
 {
-	while( s && *s ) {
-		if( *s == a )
-			*s = b;
-		s++;
-	}
+    while( s && *s ) {
+        if( *s == a ) {
+            *s = b;
+        }
+        s++;
+    }
 }
 
 
 void chop(char *str, int n)
 {
-	char	*p;
-    
-	if ( str ) {
-		p = strchr( str, 0 );
-		while( p && n-- )
-			*--p = 0;
-	}
+    char	*p;
+
+    if ( str ) {
+        p = strchr( str, 0 );
+        while( p && n-- ) {
+            *--p = 0;
+        }
+    }
 }
 
 
 size_t chopc(char *str, char ch)
 {
-	size_t	slen = strlen ( str ) - 1;
+    size_t	slen = strlen ( str ) - 1;
 
-	while( slen && str[slen] == ch )
-		str[slen--] = '\0';
+    while( slen && str[slen] == ch ) {
+        str[slen--] = '\0';
+    }
 
-	return slen;
+    return slen;
 }
 
 
@@ -166,10 +174,11 @@ size_t chopc(char *str, char ch)
  */
 char *skip_blanks(char *str)
 {
-	if ( str != NULL )
-        	while( XBLANK( str ))
-            		str++;
-	return str;
+    if ( str != NULL )
+        while( XBLANK( str )) {
+            str++;
+        }
+    return str;
 }
 
 
@@ -178,15 +187,15 @@ char *skip_blanks(char *str)
  */
 void skip_blanksr(char *str)
 {
-	char *r;
+    char *r;
 
-	if ( str != NULL && *str ) {
-		r = str + strlen( str ) - 1;
-		while( r >= str && XBLANK( r )) {
-			*r = '\0';
-			r--;
-		}
-	}
+    if ( str != NULL && *str ) {
+        r = str + strlen( str ) - 1;
+        while( r >= str && XBLANK( r )) {
+            *r = '\0';
+            r--;
+        }
+    }
 }
 
 
@@ -197,29 +206,33 @@ void skip_blanksr(char *str)
  */
 char *xstrcpy(char *dst, const char *src, size_t siz)
 {
-	register char		*d = dst;
-	register const char	*s = src;
-	register size_t		n = siz;
+    register char		*d = dst;
+    register const char	*s = src;
+    register size_t		n = siz;
 
-	if ( !src )
-        	return dst;
-	if ( !dst )
-		return NULL;
+    if ( !src ) {
+        return dst;
+    }
+    if ( !dst ) {
+        return NULL;
+    }
 
-	/* Copy as many bytes as will fit */
-	if ( n != 0 && --n != 0 ) {
-		do {
-			if ((*d++ = *s++) == 0)
-				break;
-		} while (--n != 0);
-	}
+    /* Copy as many bytes as will fit */
+    if ( n != 0 && --n != 0 ) {
+        do {
+            if ((*d++ = *s++) == 0) {
+                break;
+            }
+        } while (--n != 0);
+    }
 
-	if (n == 0) {
-		if (siz != 0)
-			*d = '\0';
-	}
+    if (n == 0) {
+        if (siz != 0) {
+            *d = '\0';
+        }
+    }
 
-	return dst;
+    return dst;
 }
 
 
@@ -231,155 +244,166 @@ char *xstrcpy(char *dst, const char *src, size_t siz)
  */
 char *xstrcat(char *dst, const char *src, size_t siz)
 {
-	register char		*d = dst;
-	register const char	*s = src;
-	register size_t		n = siz;
-	size_t			dlen;
+    register char		*d = dst;
+    register const char	*s = src;
+    register size_t		n = siz;
+    size_t			dlen;
 
-	if ( !src )
-		return dst;
-	if ( !dst )
-		return NULL;
+    if ( !src ) {
+        return dst;
+    }
+    if ( !dst ) {
+        return NULL;
+    }
 
-	/* Find the end of dst and adjust bytes left but don't go past end */
-	while (n-- != 0 && *d != '\0')
-		d++;
-	dlen = d - dst;
-	n = siz - dlen;
+    /* Find the end of dst and adjust bytes left but don't go past end */
+    while (n-- != 0 && *d != '\0') {
+        d++;
+    }
+    dlen = d - dst;
+    n = siz - dlen;
 
-	if (n > 0) {
-		while (*s != '\0' && n > 1) {
-			*d++ = *s++;
-			n--;
-		}
-		*d = '\0';
-	}
+    if (n > 0) {
+        while (*s != '\0' && n > 1) {
+            *d++ = *s++;
+            n--;
+        }
+        *d = '\0';
+    }
 
-	return dst;
+    return dst;
 }
 
 
 char *xstrdup(const char *str)
 {
-	char	*s;
-	size_t	len;
+    char	*s;
+    size_t	len;
 
-	if ( !str )
-		return NULL;
+    if ( !str ) {
+        return NULL;
+    }
 
-	len = strlen( str ) + 1;
-	s = xmalloc( len );
-	if ( s )
-		return xstrcpy( s, str, len );
+    len = strlen( str ) + 1;
+    s = xmalloc( len );
+    if ( s ) {
+        return xstrcpy( s, str, len );
+    }
 
-	write_log( "!!! xstrdup(): could not duplicate string");
-	abort();
+    write_log( "!!! xstrdup(): could not duplicate string");
+    abort();
 }
 
 
 char *restrcpy(char **dst, const char *src)
 {
-	xfree( *dst );
+    xfree( *dst );
 
-	if ( !src )
-        	return NULL;
+    if ( !src ) {
+        return NULL;
+    }
 
-	return *dst = xstrdup( src );
+    return *dst = xstrdup( src );
 }
 
 
 char *restrcat(char **dst, const char *src)
 {
-	size_t	len;
+    size_t	len;
 
-	if ( !src )
-		return *dst;
-	if ( !*dst )
-		return *dst = xstrdup( src );
+    if ( !src ) {
+        return *dst;
+    }
+    if ( !*dst ) {
+        return *dst = xstrdup( src );
+    }
 
-	len = strlen( *dst ) + strlen( src ) + 1;
-	*dst = xrealloc( *dst, len );
-	return xstrcat( *dst, src, len );
+    len = strlen( *dst ) + strlen( src ) + 1;
+    *dst = xrealloc( *dst, len );
+    return xstrcat( *dst, src, len );
 }
 
 
 void bin2strhex(void *str, const void *binstr, size_t blen)
 {
-	register unsigned char		*s = str;
-	register const unsigned char	*b = binstr;
+    register unsigned char		*s = str;
+    register const unsigned char	*b = binstr;
 
-	while( blen-- ) {
-		*s++ = hexdigitslower[(*b >> 4) & 0x0f];
-		*s++ = hexdigitslower[(*b++) & 0x0f];
-	}
-	*s = '\0';
+    while( blen-- ) {
+        *s++ = hexdigitslower[(*b >> 4) & 0x0f];
+        *s++ = hexdigitslower[(*b++) & 0x0f];
+    }
+    *s = '\0';
 }
 
 
 int strhex2bin(void *binstr, const void *str)
 {
-	register unsigned char		*dest = binstr;
-	register const unsigned char	*s = str;
-	register const char		*p;
+    register unsigned char		*dest = binstr;
+    register const unsigned char	*s = str;
+    register const char		*p;
 
-	if ( str == NULL )
-		return 0;
+    if ( str == NULL ) {
+        return 0;
+    }
 
-	while( *s && *(s + 1)) {
-		if (( p = strchr( hexdigitsall, *(s++)))) {
-			*dest = (byte) ( p - hexdigitsall );
-			if (( p = strchr( hexdigitsall, *(s++)))) {
-				*dest <<= 4;
-				*dest++ |= (byte) ( p - hexdigitsall );
-			} else
-				return 0;
-		} else
-			return 0;
-	}
+    while( *s && *(s + 1)) {
+        if (( p = strchr( hexdigitsall, *(s++)))) {
+            *dest = (byte) ( p - hexdigitsall );
+            if (( p = strchr( hexdigitsall, *(s++)))) {
+                *dest <<= 4;
+                *dest++ |= (byte) ( p - hexdigitsall );
+            } else {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
 
-	return ( dest - (unsigned char *) binstr );
+    return ( dest - (unsigned char *) binstr );
 }
 
 
 time_t gmtoff(time_t tt)
 {
-	struct tm	gt;
-	time_t		gmt;
+    struct tm	gt;
+    time_t		gmt;
 
-	memcpy( &gt, gmtime( &tt ), sizeof( struct tm ));
-	gt.tm_isdst = 0;
-	gmt = mktime( &gt );
-	memcpy( &gt, localtime( &tt ), sizeof( struct tm ));
-	gt.tm_isdst = 0;
-	return mktime( &gt ) - gmt;
+    memcpy( &gt, gmtime( &tt ), sizeof( struct tm ));
+    gt.tm_isdst = 0;
+    gmt = mktime( &gt );
+    memcpy( &gt, localtime( &tt ), sizeof( struct tm ));
+    gt.tm_isdst = 0;
+    return mktime( &gt ) - gmt;
 }
 
 
 char *wktime_str(const char *flags)
 {
-	char		*p, *oflags, *optr;
-	static char	res[80];
-	time_t		tm = time( NULL );
-	long		tz = gmtoff( tm ) / 3600;
+    char		*p, *oflags, *optr;
+    static char	res[80];
+    time_t		tm = time( NULL );
+    long		tz = gmtoff( tm ) / 3600;
 
-	optr = oflags = xstrdup( flags );
-	res[0] = '\0';
-	while(( p = strsep( &optr, "," ))) {
-		if ( !strcmp( p, "CM" )) {
-			xstrcpy( res, "00:00-24:00", 80 );
-			break;
-		}
-		if ( p[0] == 'T' && strlen( p ) == 3 ) {
-			snprintf( res, 79, "%02ld:%02d-%02ld:%02d",
-				( toupper( p[1] ) - 'A' + tz ) % 24,
-				islower((int) p[1] ) ? 30 : 0,
-				( toupper( p[2] ) - 'A' + tz ) % 24,
-				islower((int) p[2] ) ? 30 : 0 );
-			break;
-		}
-	}
-	xfree( oflags );
-	return res[0] ? res : NULL;
+    optr = oflags = xstrdup( flags );
+    res[0] = '\0';
+    while(( p = strsep( &optr, "," ))) {
+        if ( !strcmp( p, "CM" )) {
+            xstrcpy( res, "00:00-24:00", 80 );
+            break;
+        }
+        if ( p[0] == 'T' && strlen( p ) == 3 ) {
+            snprintf( res, 79, "%02ld:%02d-%02ld:%02d",
+                      ( toupper( p[1] ) - 'A' + tz ) % 24,
+                      islower((int) p[1] ) ? 30 : 0,
+                      ( toupper( p[2] ) - 'A' + tz ) % 24,
+                      islower((int) p[2] ) ? 30 : 0 );
+            break;
+        }
+    }
+    xfree( oflags );
+    return res[0] ? res : NULL;
 }
 
 
@@ -479,49 +503,50 @@ static char	*LastArgv = NULL;	/* end of argv */
 
 void
 initsetproctitle(argc, argv, envp)
-	int argc;
-	char **argv;
-	char **envp;
+int argc;
+char **argv;
+char **envp;
 {
-	register int i;
-	extern char **environ;
+    register int i;
+    extern char **environ;
 
-	/*
-	**  Move the environment so setproctitle can use the space at
-	**  the top of memory.
-	*/
+    /*
+    **  Move the environment so setproctitle can use the space at
+    **  the top of memory.
+    */
 
-	if (envp != NULL)
-	{
-		for (i = 0; envp[i] != NULL; i++)
-			continue;
-		environ = (char **) xmalloc(sizeof (char *) * (i + 1));
-		for (i = 0; envp[i] != NULL; i++)
-			environ[i] = xstrdup(envp[i]);
-		environ[i] = NULL;
-	}
+    if (envp != NULL) {
+        for (i = 0; envp[i] != NULL; i++) {
+            continue;
+        }
+        environ = (char **) xmalloc(sizeof (char *) * (i + 1));
+        for (i = 0; envp[i] != NULL; i++) {
+            environ[i] = xstrdup(envp[i]);
+        }
+        environ[i] = NULL;
+    }
 
-	/*
-	**  Save start and extent of argv for setproctitle.
-	*/
+    /*
+    **  Save start and extent of argv for setproctitle.
+    */
 
-	Argv = argv;
+    Argv = argv;
 
-	/*
-	**  Determine how much space we can use for setproctitle.
-	**  Use all contiguous argv and envp pointers starting at argv[0]
-	*/
+    /*
+    **  Determine how much space we can use for setproctitle.
+    **  Use all contiguous argv and envp pointers starting at argv[0]
+    */
 
-	for (i = 0; i < argc; i++)
-	{
-		if (i == 0 || LastArgv + 1 == argv[i])
-			LastArgv = argv[i] + strlen(argv[i]);
-	}
-	for (i = 0; LastArgv != NULL && envp != NULL && envp[i] != NULL; i++)
-	{
-		if (LastArgv + 1 == envp[i])
-			LastArgv = envp[i] + strlen(envp[i]);
-	}
+    for (i = 0; i < argc; i++) {
+        if (i == 0 || LastArgv + 1 == argv[i]) {
+            LastArgv = argv[i] + strlen(argv[i]);
+        }
+    }
+    for (i = 0; LastArgv != NULL && envp != NULL && envp[i] != NULL; i++) {
+        if (LastArgv + 1 == envp[i]) {
+            LastArgv = envp[i] + strlen(envp[i]);
+        }
+    }
 }
 
 #if SPT_TYPE != SPT_BUILTIN
@@ -529,87 +554,90 @@ initsetproctitle(argc, argv, envp)
 void setproctitle(const char *fmt, ...)
 {
 # if SPT_TYPE != SPT_NONE
-	register int i;
-	register char *p;
-	SETPROC_STATIC char buf[SPT_BUFSIZE];
-	va_list ap;
+    register int i;
+    register char *p;
+    SETPROC_STATIC char buf[SPT_BUFSIZE];
+    va_list ap;
 #  if SPT_TYPE == SPT_PSTAT
-	union pstun pst;
+    union pstun pst;
 #  endif /* SPT_TYPE == SPT_PSTAT */
 #  if SPT_TYPE == SPT_SCO
-	int j;
-	off_t seek_off;
-	static int kmem = -1;
-	static pid_t kmempid = -1;
-	struct user u;
+    int j;
+    off_t seek_off;
+    static int kmem = -1;
+    static pid_t kmempid = -1;
+    struct user u;
 #  endif /* SPT_TYPE == SPT_SCO */
 
-	p = buf;
+    p = buf;
 
-	/* print `progname': heading for grep */
-	snprintf( p, (size_t) SPACELEFT(buf, p), "%s: ", progname );
-	p += strlen(p);
+    /* print `progname': heading for grep */
+    snprintf( p, (size_t) SPACELEFT(buf, p), "%s: ", progname );
+    p += strlen(p);
 
-	/* print the argument string */
-	va_start( ap, fmt );
-	(void) vsnprintf(p, SPACELEFT(buf, p), fmt, ap);
-	va_end( ap );
+    /* print the argument string */
+    va_start( ap, fmt );
+    (void) vsnprintf(p, SPACELEFT(buf, p), fmt, ap);
+    va_end( ap );
 
-	i = (int) strlen(buf);
-	if (i < 0)
-		return;
+    i = (int) strlen(buf);
+    if (i < 0) {
+        return;
+    }
 
 #  if SPT_TYPE == SPT_PSTAT
-	pst.pst_command = buf;
-	pstat(PSTAT_SETCMD, pst, i, 0, 0);
+    pst.pst_command = buf;
+    pstat(PSTAT_SETCMD, pst, i, 0, 0);
 #  endif /* SPT_TYPE == SPT_PSTAT */
 #  if SPT_TYPE == SPT_PSSTRINGS
-	PS_STRINGS->ps_nargvstr = 1;
-	PS_STRINGS->ps_argvstr = buf;
+    PS_STRINGS->ps_nargvstr = 1;
+    PS_STRINGS->ps_argvstr = buf;
 #  endif /* SPT_TYPE == SPT_PSSTRINGS */
 #  if SPT_TYPE == SPT_SYSMIPS
-	sysmips(SONY_SYSNEWS, NEWS_SETPSARGS, buf);
+    sysmips(SONY_SYSNEWS, NEWS_SETPSARGS, buf);
 #  endif /* SPT_TYPE == SPT_SYSMIPS */
 #  if SPT_TYPE == SPT_SCO
-	if (kmem < 0 || kmempid != CurrentPid)
-	{
-		if (kmem >= 0)
-			(void) close(kmem);
-		kmem = open(_PATH_KMEM, O_RDWR, 0);
-		if (kmem < 0)
-			return;
-		if ((j = fcntl(kmem, F_GETFD, 0)) < 0 ||
-		    fcntl(kmem, F_SETFD, j | FD_CLOEXEC) < 0)
-		{
-			(void) close(kmem);
-			kmem = -1;
-			return;
-		}
-		kmempid = CurrentPid;
-	}
-	buf[PSARGSZ - 1] = '\0';
-	seek_off = UVUBLK + (off_t) u.u_psargs - (off_t) &u;
-	if (lseek(kmem, (off_t) seek_off, SEEK_SET) == seek_off)
-		(void) write(kmem, buf, PSARGSZ);
+    if (kmem < 0 || kmempid != CurrentPid) {
+        if (kmem >= 0) {
+            (void) close(kmem);
+        }
+        kmem = open(_PATH_KMEM, O_RDWR, 0);
+        if (kmem < 0) {
+            return;
+        }
+        if ((j = fcntl(kmem, F_GETFD, 0)) < 0 ||
+                fcntl(kmem, F_SETFD, j | FD_CLOEXEC) < 0) {
+            (void) close(kmem);
+            kmem = -1;
+            return;
+        }
+        kmempid = CurrentPid;
+    }
+    buf[PSARGSZ - 1] = '\0';
+    seek_off = UVUBLK + (off_t) u.u_psargs - (off_t) &u;
+    if (lseek(kmem, (off_t) seek_off, SEEK_SET) == seek_off) {
+        (void) write(kmem, buf, PSARGSZ);
+    }
 #  endif /* SPT_TYPE == SPT_SCO */
 #  if SPT_TYPE == SPT_REUSEARGV
-	if (LastArgv == NULL)
-		return;
+    if (LastArgv == NULL) {
+        return;
+    }
 
-	if (i > LastArgv - Argv[0] - 2)
-	{
-		i = LastArgv - Argv[0] - 2;
-		buf[i] = '\0';
-	}
-	(void) xstrcpy(Argv[0], buf, i + 1);
-	p = &Argv[0][i];
-	while (p < LastArgv)
-		*p++ = SPT_PADCHAR;
-	Argv[1] = NULL;
+    if (i > LastArgv - Argv[0] - 2) {
+        i = LastArgv - Argv[0] - 2;
+        buf[i] = '\0';
+    }
+    (void) xstrcpy(Argv[0], buf, i + 1);
+    p = &Argv[0][i];
+    while (p < LastArgv) {
+        *p++ = SPT_PADCHAR;
+    }
+    Argv[1] = NULL;
 #  endif /* SPT_TYPE == SPT_REUSEARGV */
 #  if SPT_TYPE == SPT_CHANGEARGV
-	Argv[0] = buf;
-	Argv[1] = 0;
+    Argv[0] = buf;
+    Argv[1] = 0;
 #  endif /* SPT_TYPE == SPT_CHANGEARGV */
 # endif /* SPT_TYPE != SPT_NONE */
 }
@@ -621,7 +649,9 @@ void setargspace(int argc,char **argv,char **envp)
 {
     int i=0;
     cmdstr=argv[0];
-    while(envp[i])i++;
+    while(envp[i]) {
+        i++;
+    }
     environ=xmalloc(sizeof(char*)*(i+1));
     i=0;
     while(envp[i]) {
@@ -630,17 +660,28 @@ void setargspace(int argc,char **argv,char **envp)
     }
     environ[i]=NULL;
     cmdstrend=argv[0]+strlen(argv[0]);
-    for(i=1;i<argc;i++)if(cmdstrend+1==argv[i])cmdstrend=argv[i]+strlen(argv[i]);
-    for(i=0;envp[i];i++)if(cmdstrend+1==envp[i])cmdstrend=envp[i]+strlen(envp[i]);
+    for(i=1; i<argc; i++)if(cmdstrend+1==argv[i]) {
+            cmdstrend=argv[i]+strlen(argv[i]);
+        }
+    for(i=0; envp[i]; i++)if(cmdstrend+1==envp[i]) {
+            cmdstrend=envp[i]+strlen(envp[i]);
+        }
 }
 
 
 void setproctitle(char *str)
 {
     char *p;
-    if(!cmdstr)return;
-    for(p=cmdstr;p<cmdstrend&&*str;p++,str++)*p=*str;
-    *p++=0;while(p<cmdstrend)*p++=' ';
+    if(!cmdstr) {
+        return;
+    }
+    for(p=cmdstr; p<cmdstrend&&*str; p++,str++) {
+        *p=*str;
+    }
+    *p++=0;
+    while(p<cmdstrend) {
+        *p++=' ';
+    }
 }
 #endif /* 0 */
 
@@ -649,22 +690,23 @@ void setproctitle(char *str)
 
 void u_vers(const char *progn)
 {
-	struct utsname uts;
+    struct utsname uts;
 
-	printf( "%s v%s [%s]\n", progn, version, cvsdate );
-    
-	if( !uname( &uts ))
-		printf( "%s %s (%s), ", uts.sysname, uts.release, uts.machine );
-	printf(
+    printf( "%s v%s [%s]\n", progn, version, cvsdate );
+
+    if( !uname( &uts )) {
+        printf( "%s %s (%s), ", uts.sysname, uts.release, uts.machine );
+    }
+    printf(
 #ifdef __GNUC__
-		"g"
+        "g"
 #endif
-		"cc: "
+        "cc: "
 #ifdef __VERSION__
-		__VERSION__
+        __VERSION__
 #else
-		"unknown"
+        "unknown"
 #endif
-		"\n");
-	exit( 0 );
+        "\n");
+    exit( 0 );
 }

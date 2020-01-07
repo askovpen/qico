@@ -91,7 +91,7 @@ int	zmodem_senddone(void);
 
 /* emsi.c */
 void	emsi_makedat(ftnaddr_t *, unsigned long, unsigned long,
-		int, char *, falist_t *, int);
+                     int, char *, falist_t *, int);
 int	emsi_init(int);
 int	emsi_send(void);
 int	emsi_recv(int, ninfo_t *);

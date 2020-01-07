@@ -67,7 +67,8 @@
 #include "modem.h"
 
 static int dial_rc = MC_OK;
-static char *mcs[] = {             /* MC_ defined in tty.h */
+static char *mcs[] =               /* MC_ defined in tty.h */
+{
     "ok",                          /* MC_OK              0 */
     "fail",                        /* MC_FAIL            1 */
     "error",                       /* MC_ERROR           2 */
@@ -84,101 +85,104 @@ static char *mcs[] = {             /* MC_ defined in tty.h */
  */
 static int modem_init_device(char *dev)
 {
-	char	port[MAX_PATH + 5] = "/dev/", *p;
-	int	speed = 0;
-	pid_t	mypid = getpid();
-	TIO	tio;
+    char	port[MAX_PATH + 5] = "/dev/", *p;
+    int	speed = 0;
+    pid_t	mypid = getpid();
+    TIO	tio;
 
-	DEBUG(('M',2,"modem_init_device: dev %s", dev));
+    DEBUG(('M',2,"modem_init_device: dev %s", dev));
 
-	tty_fd = -1;
+    tty_fd = -1;
 
-	if( *dev != '/' )
-		xstrcat( port, dev, sizeof( port ));
-	else
-		xstrcpy( port, dev, sizeof( port ));
+    if( *dev != '/' ) {
+        xstrcat( port, dev, sizeof( port ));
+    } else {
+        xstrcpy( port, dev, sizeof( port ));
+    }
 
-	if (( p = strchr( port, ':' ))) {
-		*p++ = '\0';
-		speed = atoi( p );
-	}
+    if (( p = strchr( port, ':' ))) {
+        *p++ = '\0';
+        speed = atoi( p );
+    }
 
-	if ( !speed )
-		speed = DEFAULT_SPEED;
+    if ( !speed ) {
+        speed = DEFAULT_SPEED;
+    }
 
-	DEBUG(('M',4,"modem_init_device: port %s, speed %d", port, speed));
+    DEBUG(('M',4,"modem_init_device: port %s, speed %d", port, speed));
 
-	if ( tty_lock( port ))
-		return ME_CANTLOCK;
+    if ( tty_lock( port )) {
+        return ME_CANTLOCK;
+    }
 
-    
-	tty_fd = open( port, O_RDWR | O_NONBLOCK );
-	/*
-	fd = open( port, O_RDWR | O_NDELAY | O_NOCTTY );
-	*/
 
-	if ( tty_fd == -1 ) {
-		write_log( "can't open %s", port );
-		return ME_OPEN;
-	}
+    tty_fd = open( port, O_RDWR | O_NONBLOCK );
+    /*
+    fd = open( port, O_RDWR | O_NDELAY | O_NOCTTY );
+    */
 
-	if ( fd_make_stddev( tty_fd ) != OK ) {
-		DEBUG(('M',4,"modem_init_device: can't make stdin/stdout/stderr"));
-		close( tty_fd );
-		tty_unlock( port );
-		return ME_OPEN;
-	}
+    if ( tty_fd == -1 ) {
+        write_log( "can't open %s", port );
+        return ME_OPEN;
+    }
 
-	tty_fd = 0;
+    if ( fd_make_stddev( tty_fd ) != OK ) {
+        DEBUG(('M',4,"modem_init_device: can't make stdin/stdout/stderr"));
+        close( tty_fd );
+        tty_unlock( port );
+        return ME_OPEN;
+    }
 
-	if ( tio_get( tty_fd, &tty_stio ) == ERROR ) {
-		close( tty_fd );
-		tty_unlock( port );
-		return ME_ATTRS;
-	}
+    tty_fd = 0;
 
-	memcpy( &tio, &tty_stio, sizeof( TIO ));
-	tio_raw_mode( &tio );
-	tio_local_mode( &tio, TRUE );
-	tio_set_speed( &tio, speed );
+    if ( tio_get( tty_fd, &tty_stio ) == ERROR ) {
+        close( tty_fd );
+        tty_unlock( port );
+        return ME_ATTRS;
+    }
+
+    memcpy( &tio, &tty_stio, sizeof( TIO ));
+    tio_raw_mode( &tio );
+    tio_local_mode( &tio, TRUE );
+    tio_set_speed( &tio, speed );
 
 #ifdef sun
-	tio_set_flow_control( tty_fd, &tio, (DATA_FLOW) & (FLOW_SOFT) );
+    tio_set_flow_control( tty_fd, &tio, (DATA_FLOW) & (FLOW_SOFT) );
 #else
-	tio_set_flow_control( tty_fd, &tio, DATA_FLOW );
+    tio_set_flow_control( tty_fd, &tio, DATA_FLOW );
 #endif
 
-	if ( tio_set( tty_fd, &tio ) == ERROR ) {
-		close( tty_fd );
-		tty_unlock( port );
-		return ME_ATTRS;
-	}
+    if ( tio_set( tty_fd, &tio ) == ERROR ) {
+        close( tty_fd );
+        tty_unlock( port );
+        return ME_ATTRS;
+    }
 
-	if ( getsid( mypid ) == mypid ) {
+    if ( getsid( mypid ) == mypid ) {
 #ifdef HAVE_TIOCSCTTY
-		/* We are on BSD system, set this terminal as out control terminal */
-		ioctl( tty_fd, TIOCSCTTY );
+        /* We are on BSD system, set this terminal as out control terminal */
+        ioctl( tty_fd, TIOCSCTTY );
 #endif
-		tcsetpgrp( tty_fd, mypid );
-	}
+        tcsetpgrp( tty_fd, mypid );
+    }
 
-	if ( cfgi( CFG_MODEMCHECKDSR )) {
-		speed = tio_get_rs232_lines( tty_fd );
-		if ( speed != -1 && ( speed & (TIO_F_DSR|TIO_F_CTS)) == 0 ) {
-			DEBUG(('M',1,"No DSR/CTS signals, assuming modem is switched off"));
-			close( tty_fd );
-			tty_unlock( port );
-			return ME_NODSR;
-		}
-	}
+    if ( cfgi( CFG_MODEMCHECKDSR )) {
+        speed = tio_get_rs232_lines( tty_fd );
+        if ( speed != -1 && ( speed & (TIO_F_DSR|TIO_F_CTS)) == 0 ) {
+            DEBUG(('M',1,"No DSR/CTS signals, assuming modem is switched off"));
+            close( tty_fd );
+            tty_unlock( port );
+            return ME_NODSR;
+        }
+    }
 
-	signal( SIGHUP, tty_sighup );
-	signal( SIGPIPE, tty_sighup );
+    signal( SIGHUP, tty_sighup );
+    signal( SIGPIPE, tty_sighup );
 
-	tty_gothup = FALSE;
-	tty_port = xstrdup( port );
+    tty_gothup = FALSE;
+    tty_port = xstrdup( port );
 
-	return OK;
+    return OK;
 }
 
 
@@ -188,16 +192,16 @@ static int modem_init_device(char *dev)
  */
 static char *modem_find_device(char *firstport)
 {
-	DEBUG(('M',2,"modem_find_device"));
+    DEBUG(('M',2,"modem_find_device"));
 
 #if 0
-	slist_t *ports = cfgs( CFG_PORT );
+    slist_t *ports = cfgs( CFG_PORT );
 
-	if ( firstport && strlen( *firstport ) > 0 )
+    if ( firstport && strlen( *firstport ) > 0 )
 
 
 #endif
-	return NULL;
+        return NULL;
 }
 
 
@@ -212,37 +216,37 @@ static int modem_clean_line(int waittime)
 {
 #if defined(MEIBE) || defined(NEXTSGTTY) || defined(BROKEN_VTIME)
 
-	int	bytes = 0;				/* bytes read */
+    int	bytes = 0;				/* bytes read */
 
-	/* on some systems, the VMIN/VTIME mechanism is obviously totally
-	 * broken. So, use a select()/flush queue loop instead.
-	 */
-	DEBUG(('M',2,"waiting for line to clear (select/%d sec)", waittime ));
+    /* on some systems, the VMIN/VTIME mechanism is obviously totally
+     * broken. So, use a select()/flush queue loop instead.
+     */
+    DEBUG(('M',2,"waiting for line to clear (select/%d sec)", waittime ));
 
-	while( GETCHAR( waittime ) > 0 && bytes++ < 10000 );
+    while( GETCHAR( waittime ) > 0 && bytes++ < 10000 );
 
 #else
-	TIO	tio, save_tio;
+    TIO	tio, save_tio;
 
-	DEBUG(('M',2,"waiting for line to clear (VTIME=%d)", waittime * 10));
+    DEBUG(('M',2,"waiting for line to clear (VTIME=%d)", waittime * 10));
 
-	/* set terminal timeout to "waittime" tenth of a second */
-	tio_get( tty_fd, &tio );
-	save_tio = tio;				/*!! FIXME - sgtty?! */
-	tio.c_lflag &= ~ICANON;
-	tio.c_cc[VMIN] = 0;
-	tio.c_cc[VTIME] = waittime * 10;
-	tio_set( tty_fd, &tio );
+    /* set terminal timeout to "waittime" tenth of a second */
+    tio_get( tty_fd, &tio );
+    save_tio = tio;				/*!! FIXME - sgtty?! */
+    tio.c_lflag &= ~ICANON;
+    tio.c_cc[VMIN] = 0;
+    tio.c_cc[VTIME] = waittime * 10;
+    tio_set( tty_fd, &tio );
 
-	/* read everything that comes from modem until a timeout occurs */
-	while( GETCHAR( 1 ) > 0 );
+    /* read everything that comes from modem until a timeout occurs */
+    while( GETCHAR( 1 ) > 0 );
 
-	/* reset terminal settings */
-	tio_set( tty_fd, &save_tio );
-    
+    /* reset terminal settings */
+    tio_set( tty_fd, &save_tio );
+
 #endif
 
-	return 0;
+    return 0;
 }
 
 
@@ -250,63 +254,70 @@ static int modem_send_str(char *cmd)
 {
     int rc = 1;
 
-    if ( !cmd )
+    if ( !cmd ) {
         return 1;
-    
+    }
+
     DEBUG(('M',1,">> %s",cmd));
 
     while( *cmd && rc > 0 ) {
         switch( *cmd ) {
-            case '|':
-                rc = write( tty_fd, "\r", 1 );
-                qsleep( 500 );	/* sleep for 0.5 sec */
-                break;
+        case '|':
+            rc = write( tty_fd, "\r", 1 );
+            qsleep( 500 );	/* sleep for 0.5 sec */
+            break;
 
-            case '~':
-                qsleep( 1000 );	/* sleep for 1 sec */
-                rc = 1;
-                break;
+        case '~':
+            qsleep( 1000 );	/* sleep for 1 sec */
+            rc = 1;
+            break;
 
-            case '\'':
-            case '`':
-                qsleep( 200 );	/* sleep for 0.2 sec */
-                rc = 1;
-                break;
+        case '\'':
+        case '`':
+            qsleep( 200 );	/* sleep for 0.2 sec */
+            rc = 1;
+            break;
 
-            /*
-            case '^':
-                rc = tio_toggle_dtr( tty_fd, DTR_HI ) == OK;
-                break;
-            */
+        /*
+        case '^':
+            rc = tio_toggle_dtr( tty_fd, DTR_HI ) == OK;
+            break;
+        */
 
-            case 'v':
-                rc = 0;
-                if ( !strchr( cmd, '^' ))	/* It's just a 'v' command */
-                    goto writeit;
-                cmd++;
-                while( *cmd && *cmd != '^' ) {
-                    if      ( *cmd == '~' ) rc += 1000;
-                    else if ( *cmd == '\'' ) rc += 200;
-                    cmd++;
+        case 'v':
+            rc = 0;
+            if ( !strchr( cmd, '^' )) {	/* It's just a 'v' command */
+                goto writeit;
+            }
+            cmd++;
+            while( *cmd && *cmd != '^' ) {
+                if      ( *cmd == '~' ) {
+                    rc += 1000;
+                } else if ( *cmd == '\'' ) {
+                    rc += 200;
                 }
-                if ( *cmd != '^' )		/* Just in case */
-                    write_log( "Can't lower dtr without raising it back" );
-                else
-                    rc = tio_toggle_dtr( tty_fd, rc > 250 ? rc : 250 ) == OK;
-                break;
+                cmd++;
+            }
+            if ( *cmd != '^' ) {	/* Just in case */
+                write_log( "Can't lower dtr without raising it back" );
+            } else {
+                rc = tio_toggle_dtr( tty_fd, rc > 250 ? rc : 250 ) == OK;
+            }
+            break;
 
-            default:
+        default:
 writeit:
-                rc = write( tty_fd, cmd, 1);
-                DEBUG(('M',3,">>> %c, rc=%d",C0(*cmd),rc));
+            rc = write( tty_fd, cmd, 1);
+            DEBUG(('M',3,">>> %c, rc=%d",C0(*cmd),rc));
         }
         cmd++;
     }
-    
-    if ( rc > 0 )
+
+    if ( rc > 0 ) {
         DEBUG(('M',2,"modem_send_str: sent"));
-    else
+    } else {
         DEBUG(('M',2,"modem_send_str: error, rc=%d, errno=%d",rc,errno));
+    }
 
     return rc;
 }
@@ -334,10 +345,11 @@ static int modem_get_str(char *buf, size_t nbytes, int timeout)
 
         rc = OK;
         if ( ch == '\r' || ch == '\n' ) {
-            if ( ptr )
+            if ( ptr ) {
                 break;
-            else
+            } else {
                 continue;
+            }
         }
 
         if ( ptr == (int) nbytes ) {
@@ -347,8 +359,9 @@ static int modem_get_str(char *buf, size_t nbytes, int timeout)
             break;
         }
 
-        if ( ch >= 0 )
+        if ( ch >= 0 ) {
             buf[ptr++] = ch;
+        }
     }
     buf[ptr] = '\0';
 
@@ -362,38 +375,41 @@ static int modem_get_str(char *buf, size_t nbytes, int timeout)
 
 
 static int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist_t *bys,
-        char *ringing, int maxrings, int timeout, char *rest, size_t restlen, int show)
+                      char *ringing, int maxrings, int timeout, char *rest, size_t restlen, int show)
 {
     char buf[MAX_STRING + 5];
     int rc, nrings = 0;
     slist_t *cs;
     time_t t1;
-    
+
     DEBUG(('M',1,"modem_chat: cmd=\"%s\" timeout=%d",cmd,timeout));
 
-    if ( rest )
+    if ( rest ) {
         *rest = '\0';
+    }
 
     rc = modem_send_str( cmd );
     if ( rc != 1 ) {
-        if ( rest )
+        if ( rest ) {
             xstrcpy( rest, "FAILURE", restlen );
+        }
         DEBUG(('M',1,"modem_chat: modem_send_str failed, rc=%d",rc));
         return MC_FAIL;
     }
 
     DEBUG(('M',2,"modem_send_str OK"));
 
-    if ( !oks && !ers && !bys )
+    if ( !oks && !ers && !bys ) {
         return MC_OK;
-    
+    }
+
     rc = OK;
     t1 = timer_set( timeout );
 
     while( ISTO( rc ) && !timer_expired( t1 ) && ( !maxrings || nrings < maxrings )) {
         rc = modem_get_str( buf, MAX_STRING-1, timer_rest( t1 ));
         DEBUG(('M',3,"modem_chat: modem_get_str rc=%d, buf='%s'",rc, buf));
-        
+
         if ( rc == RCDO ) {
             if ( rest ) {
                 if ( tty_gothup ) {
@@ -404,26 +420,30 @@ static int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist
                 return MC_BUSY;
             }
         }
-        
+
         if ( rc != OK ) {
-            if ( rest )
+            if ( rest ) {
                 xstrcpy( rest, "FAILURE", restlen );
+            }
             DEBUG(('M',1,"modem_chat: modem_get_str failed, rc=%d",rc));
             return MC_FAIL;
         }
-        
-        if ( !*buf || strcasestr( cmd, buf ))
+
+        if ( !*buf || strcasestr( cmd, buf )) {
             continue;
-        
+        }
+
         for( cs = oks; cs; cs = cs->next )
             if ( !strncmp( buf, cs->str, strlen( cs->str ))) {
-                if ( rest )
+                if ( rest ) {
                     xstrcpy( rest, buf, restlen );
+                }
                 return MC_OK;
             }
 
-        if ( show )
+        if ( show ) {
             write_log( buf );
+        }
 
         for( cs = ers; cs; cs = cs->next )
             if ( !strncmp( buf, cs->str, strlen( cs->str ))) {
@@ -457,28 +477,29 @@ static int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist
 
         for( cs = bys; cs; cs = cs->next )
             if ( !strncmp( buf, cs->str, strlen( cs->str ))) {
-		/*
-                if ( rest )
-                    xstrcpy( rest, buf, restlen );
-		*/
+                /*
+                        if ( rest )
+                            xstrcpy( rest, buf, restlen );
+                */
                 return MC_BUSY;
             }
     }
 
     if ( rest ) {
-        if ( nrings && maxrings && nrings >= maxrings)
+        if ( nrings && maxrings && nrings >= maxrings) {
             snprintf( rest, restlen, "%d RINGINGs", nrings );
-        else if( ISTO( rc ))
+        } else if( ISTO( rc )) {
             xstrcpy( rest, "TIMEOUT", restlen );
-        else
+        } else {
             xstrcpy( rest, "FAILURE", restlen );
+        }
     }
     return MC_FAIL;
 }
 
 
 static int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout,
-        char *stat, size_t stat_len)
+                      char *stat, size_t stat_len)
 {
     char buf[MAX_STRING + 5];
     int rc;
@@ -487,19 +508,22 @@ static int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout,
 
     DEBUG(('M',2,"modem_stat: cmd=\"%s\" timeout=%d",cmd,timeout));
 
-    if ( stat )
+    if ( stat ) {
         *stat = '\0';
+    }
 
     rc = modem_send_str( cmd );
     if ( rc != 1 ) {
-        if ( stat )
+        if ( stat ) {
             xstrcpy( stat, "FAILURE", stat_len );
+        }
         DEBUG(('M',1,"modem_stat: modem_send_str failed, rc=%d",rc));
         return MC_FAIL;
     }
 
-    if ( !oks && !ers )
+    if ( !oks && !ers ) {
         return MC_OK;
+    }
 
     rc = OK;
     t1 = timer_set( timeout );
@@ -508,27 +532,31 @@ static int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout,
         rc = modem_get_str( buf, MAX_STRING-1, timer_rest( t1 ));
         DEBUG(('M',3,"modem_stat: modem_get_str rc=%d, buf='%s'", rc, buf));
 
-        if ( !*buf || strcasestr( cmd, buf ))
+        if ( !*buf || strcasestr( cmd, buf )) {
             continue;
+        }
 
         if ( rc != OK ) {
-            if ( stat )
+            if ( stat ) {
                 xstrcat( stat, "FAILURE", stat_len );
+            }
             DEBUG(('M',1,"modem_stat: modem_get_str failed"));
             return MC_FAIL;
         }
 
         for( cs = oks; cs; cs = cs->next )
             if ( !strncmp( buf, cs->str, strlen( cs->str ))) {
-                if ( stat )
+                if ( stat ) {
                     xstrcat( stat, buf, stat_len );
+                }
                 return MC_OK;
             }
 
         for( cs = ers; cs; cs = cs->next )
             if ( !strncmp( buf, cs->str, strlen( cs->str ))) {
-                if ( stat )
+                if ( stat ) {
                     xstrcat( stat, buf, stat_len );
+                }
                 return MC_ERROR;
             }
 
@@ -539,10 +567,11 @@ static int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout,
     }
 
     if( stat ) {
-        if ( ISTO( rc ))
+        if ( ISTO( rc )) {
             xstrcat( stat, "TIMEOUT", stat_len );
-        else
+        } else {
             xstrcat( stat, "FAILURE", stat_len );
+        }
     }
     return MC_FAIL;
 }
@@ -550,208 +579,219 @@ static int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout,
 
 static int modem_alive(void)
 {
-	char	*ac;
-	int	rc = MC_OK;
+    char	*ac;
+    int	rc = MC_OK;
 
-	ac = cfgs( CFG_MODEMALIVE );
-	if ( ac == NULL )
-		return MC_OK;
+    ac = cfgs( CFG_MODEMALIVE );
+    if ( ac == NULL ) {
+        return MC_OK;
+    }
 
-	DEBUG(('M',1,"modem_alive: checking modem..."));
-	rc = modem_chat( ac, cfgsl( CFG_MODEMOK ), cfgsl( CFG_MODEMERROR ),
-		cfgsl( CFG_MODEMNODIAL ), cfgsl( CFG_MODEMBUSY ),
-		cfgs( CFG_MODEMRINGING ), cfgi( CFG_MAXRINGS ), 5, NULL, 0, 0 );
+    DEBUG(('M',1,"modem_alive: checking modem..."));
+    rc = modem_chat( ac, cfgsl( CFG_MODEMOK ), cfgsl( CFG_MODEMERROR ),
+                     cfgsl( CFG_MODEMNODIAL ), cfgsl( CFG_MODEMBUSY ),
+                     cfgs( CFG_MODEMRINGING ), cfgi( CFG_MAXRINGS ), 5, NULL, 0, 0 );
 
 #ifdef NEED_DEBUG
-	if ( rc != MC_OK )
-		DEBUG(('M',1,"modem_alive: failed, rc=%d [%s]",rc,mcs[rc]));
+    if ( rc != MC_OK ) {
+        DEBUG(('M',1,"modem_alive: failed, rc=%d [%s]",rc,mcs[rc]));
+    }
 #endif
 
-	return rc;
+    return rc;
 }
 
 
 int modem_hangup(void)
 {
-	slist_t *hc;
-	int	rc = MC_FAIL, to = timer_set( cfgi( CFG_WAITRESET ));
-    
-	write_log("hanging up...");
-	tty_purge();
-	while ( rc != MC_OK && !timer_expired( to )) {
-		if ( cfgsl( CFG_MODEMHANGUP ) == NULL ) {
-			rc = ( tio_toggle_dtr( tty_fd, 500 ) == OK ? MC_OK : MC_FAIL );
-		} else {
-			for( hc = ccsl; hc && rc != MC_OK ; hc = hc->next ) {
-				rc = ( modem_send_str( hc->str ) == 1 ? MC_OK : MC_FAIL );
-				tty_purge();
-			}
-		}
-            
-		DEBUG(('M',2,"hangup: rc %d",rc));
-		qsleep( 500 );
-		modem_clean_line( 2 );
-		DEBUG(('M',2,"dial_rc %d",dial_rc));
-		if ( rc == MC_OK ) {
-			tty_online = FALSE;
-			if ( dial_rc == MC_OK )
-				rc = modem_alive();
-		}
-	}
+    slist_t *hc;
+    int	rc = MC_FAIL, to = timer_set( cfgi( CFG_WAITRESET ));
+
+    write_log("hanging up...");
+    tty_purge();
+    while ( rc != MC_OK && !timer_expired( to )) {
+        if ( cfgsl( CFG_MODEMHANGUP ) == NULL ) {
+            rc = ( tio_toggle_dtr( tty_fd, 500 ) == OK ? MC_OK : MC_FAIL );
+        } else {
+            for( hc = ccsl; hc && rc != MC_OK ; hc = hc->next ) {
+                rc = ( modem_send_str( hc->str ) == 1 ? MC_OK : MC_FAIL );
+                tty_purge();
+            }
+        }
+
+        DEBUG(('M',2,"hangup: rc %d",rc));
+        qsleep( 500 );
+        modem_clean_line( 2 );
+        DEBUG(('M',2,"dial_rc %d",dial_rc));
+        if ( rc == MC_OK ) {
+            tty_online = FALSE;
+            if ( dial_rc == MC_OK ) {
+                rc = modem_alive();
+            }
+        }
+    }
 
 #ifdef NEED_DEBUG
-	if ( rc != MC_OK )
-		DEBUG(('M',1,"modem_hangup: failed, rc=%d [%s]",rc,mcs[rc]));
+    if ( rc != MC_OK ) {
+        DEBUG(('M',1,"modem_hangup: failed, rc=%d [%s]",rc,mcs[rc]));
+    }
 #endif
-	
-	if ( tty_dcd( tty_fd ))
-		write_log( "WARNING: DCD line still active, check modem settings (AT&Dx)" );
 
-	tty_purge();
-	return rc;
+    if ( tty_dcd( tty_fd )) {
+        write_log( "WARNING: DCD line still active, check modem settings (AT&Dx)" );
+    }
+
+    tty_purge();
+    return rc;
 }
 
 
 int modem_stat_collect(void)
 {
-	slist_t	*hc;
-	int	rc = MC_OK;
-	char	stat[2048], *cur_stat, *p;
-    
-	if ( !cfgsl( CFG_MODEMSTAT ))
-		return MC_OK;
+    slist_t	*hc;
+    int	rc = MC_OK;
+    char	stat[2048], *cur_stat, *p;
 
-	write_log( "collecting statistics..." );
+    if ( !cfgsl( CFG_MODEMSTAT )) {
+        return MC_OK;
+    }
 
-	tty_purge();
-	modem_clean_line( 2 );
-	for( hc = cfgsl( CFG_MODEMSTAT ); hc; hc = hc->next ) {
-		*stat = '\0';
-		rc = modem_stat( hc->str, cfgsl( CFG_MODEMOK ), cfgsl( CFG_MODEMERROR ),
-			cfgi( CFG_WAITRESET ), stat, sizeof( stat ));
-		for( cur_stat = stat; *cur_stat; ) {
-			for( p = cur_stat; *p && *p != '\n' && *p != '\r'; p++ );
+    write_log( "collecting statistics..." );
 
-			if ( *p )
-				*(p++) = '\0';
-			write_log( "%s", cur_stat );
-			cur_stat = p;
-		}
-	}
-	return rc;
+    tty_purge();
+    modem_clean_line( 2 );
+    for( hc = cfgsl( CFG_MODEMSTAT ); hc; hc = hc->next ) {
+        *stat = '\0';
+        rc = modem_stat( hc->str, cfgsl( CFG_MODEMOK ), cfgsl( CFG_MODEMERROR ),
+                         cfgi( CFG_WAITRESET ), stat, sizeof( stat ));
+        for( cur_stat = stat; *cur_stat; ) {
+            for( p = cur_stat; *p && *p != '\n' && *p != '\r'; p++ );
+
+            if ( *p ) {
+                *(p++) = '\0';
+            }
+            write_log( "%s", cur_stat );
+            cur_stat = p;
+        }
+    }
+    return rc;
 }
 
 
 static int modem_reset(void)
 {
-	slist_t	*hc;
-	int	rc = MC_OK;
-    
-	if ( !cfgsl( CFG_MODEMRESET ))
-		return MC_OK;
+    slist_t	*hc;
+    int	rc = MC_OK;
 
-	DEBUG(('M',1,"modem_reset"));
+    if ( !cfgsl( CFG_MODEMRESET )) {
+        return MC_OK;
+    }
 
-	tty_purge();
-	modem_clean_line( 2 );
-	for( hc = ccsl; hc && rc == MC_OK; hc = hc->next )
-		rc = modem_chat( hc->str, cfgsl( CFG_MODEMOK ), cfgsl( CFG_MODEMNODIAL ),
-			cfgsl( CFG_MODEMERROR ), cfgsl( CFG_MODEMBUSY ),
-			cfgs( CFG_MODEMRINGING ), cfgi( CFG_MAXRINGS ),
-			cfgi( CFG_WAITRESET ), NULL, 0, 1 );
-	if ( rc != MC_OK )
-		write_log( "modem reset failed, rc=%d [%s]", rc, mcs[rc] );
-    
-	return rc;
+    DEBUG(('M',1,"modem_reset"));
+
+    tty_purge();
+    modem_clean_line( 2 );
+    for( hc = ccsl; hc && rc == MC_OK; hc = hc->next )
+        rc = modem_chat( hc->str, cfgsl( CFG_MODEMOK ), cfgsl( CFG_MODEMNODIAL ),
+                         cfgsl( CFG_MODEMERROR ), cfgsl( CFG_MODEMBUSY ),
+                         cfgs( CFG_MODEMRINGING ), cfgi( CFG_MAXRINGS ),
+                         cfgi( CFG_WAITRESET ), NULL, 0, 1 );
+    if ( rc != MC_OK ) {
+        write_log( "modem reset failed, rc=%d [%s]", rc, mcs[rc] );
+    }
+
+    return rc;
 }
 
 
 int modem_dial(char *phone, char *port)
 {
-	char	s[MAX_STRING + 5], conn[MAX_STRING + 5];
-	TIO	tio;
+    char	s[MAX_STRING + 5], conn[MAX_STRING + 5];
+    TIO	tio;
 
-	dial_rc = modem_init_device( port );
-	DEBUG(('M',1,"modem_dial: modem_init_device rc=%d",dial_rc));
+    dial_rc = modem_init_device( port );
+    DEBUG(('M',1,"modem_dial: modem_init_device rc=%d",dial_rc));
 
-	if ( dial_rc != 0 ) {
-		write_log( "can't open port '%s': %s", port, tty_errs[dial_rc] );
-		return MC_BAD;
-	}
+    if ( dial_rc != 0 ) {
+        write_log( "can't open port '%s': %s", port, tty_errs[dial_rc] );
+        return MC_BAD;
+    }
 
-	dial_rc = modem_reset();
+    dial_rc = modem_reset();
 
-	if ( dial_rc != MC_OK ) {
-		/* XXX tty_close( !MODEM_OK ); */
-		return dial_rc;
-	}
+    if ( dial_rc != MC_OK ) {
+        /* XXX tty_close( !MODEM_OK ); */
+        return dial_rc;
+    }
 
-	xstrcpy( s, cfgs( CFG_DIALPREFIX ), MAX_STRING );
-	xstrcat( s, phone, MAX_STRING );
-	write_log( "dialing %s", s );
-	sline( "Dialing %s", s );
-	xstrcat( s, cfgs( CFG_DIALSUFFIX ), MAX_STRING );
+    xstrcpy( s, cfgs( CFG_DIALPREFIX ), MAX_STRING );
+    xstrcat( s, phone, MAX_STRING );
+    write_log( "dialing %s", s );
+    sline( "Dialing %s", s );
+    xstrcat( s, cfgs( CFG_DIALSUFFIX ), MAX_STRING );
 
-	vidle();
-    
-	dial_rc = modem_chat( s, cfgsl( CFG_MODEMCONNECT ), cfgsl( CFG_MODEMNODIAL ),
-		cfgsl( CFG_MODEMERROR ), cfgsl( CFG_MODEMBUSY ), cfgs( CFG_MODEMRINGING ),
-		cfgi( CFG_MAXRINGS ), cfgi( CFG_WAITCARRIER ), conn, MAX_STRING, 1 );
+    vidle();
 
-	/* XXX tty_purge(); */
+    dial_rc = modem_chat( s, cfgsl( CFG_MODEMCONNECT ), cfgsl( CFG_MODEMNODIAL ),
+                          cfgsl( CFG_MODEMERROR ), cfgsl( CFG_MODEMBUSY ), cfgs( CFG_MODEMRINGING ),
+                          cfgi( CFG_MAXRINGS ), cfgi( CFG_WAITCARRIER ), conn, MAX_STRING, 1 );
 
-	if ( dial_rc != MC_OK ) {
-		if ( *conn )
-			write_log( "%s", conn );
+    /* XXX tty_purge(); */
 
-		if ( dial_rc == MC_RING ) {
-			sline( "RING found..." );
-		} else
-			sline( "Call failed - %s", mcs[dial_rc] );
-		return dial_rc;
-	}
+    if ( dial_rc != MC_OK ) {
+        if ( *conn ) {
+            write_log( "%s", conn );
+        }
 
-	sline( "Modem said: %s", conn );
-	xfree( connstr );
-	connstr = xstrdup( conn );
-	write_log( "*** %s", conn );
+        if ( dial_rc == MC_RING ) {
+            sline( "RING found..." );
+        } else {
+            sline( "Call failed - %s", mcs[dial_rc] );
+        }
+        return dial_rc;
+    }
 
-	tio_get( tty_fd, &tio );
-	tty_local( &tio, 0 );
+    sline( "Modem said: %s", conn );
+    xfree( connstr );
+    connstr = xstrdup( conn );
+    write_log( "*** %s", conn );
 
-	if ( tio_set( tty_fd, &tio ) == ERROR ) {
-		DEBUG(('M',2,"modem_dial: tio_set failed: %s", strerror( errno )));
-	}
-    
-	tty_online = TRUE;
-	return dial_rc;
+    tio_get( tty_fd, &tio );
+    tty_local( &tio, 0 );
+
+    if ( tio_set( tty_fd, &tio ) == ERROR ) {
+        DEBUG(('M',2,"modem_dial: tio_set failed: %s", strerror( errno )));
+    }
+
+    tty_online = TRUE;
+    return dial_rc;
 }
 
 
 void modem_done(void)
 {
-	TIO tio;
+    TIO tio;
 
-	DEBUG(('M',1,"modem_done"));
+    DEBUG(('M',1,"modem_done"));
 
-	signal( SIGHUP, SIG_IGN );
-	signal( SIGPIPE, SIG_IGN );
-	tty_gothup = FALSE;
-    
-        memcpy( &tio, &tty_stio, sizeof( TIO ));
+    signal( SIGHUP, SIG_IGN );
+    signal( SIGPIPE, SIG_IGN );
+    tty_gothup = FALSE;
 
-        tio_raw_mode( &tio );
-	tio_set_flow_control( tty_fd, &tio, FLOW_NONE );
-	tio_local_mode( &tio, TRUE );
+    memcpy( &tio, &tty_stio, sizeof( TIO ));
 
-	if ( tio_set( tty_fd, &tio ) == ERROR ) {
-		DEBUG(('M',2,"modem_done: tio_set failed: %s", strerror( errno )));
-	}
+    tio_raw_mode( &tio );
+    tio_set_flow_control( tty_fd, &tio, FLOW_NONE );
+    tio_local_mode( &tio, TRUE );
 
-	modem_hangup();
-	if ( dial_rc == MC_OK ) {
-		modem_stat_collect();
-		modem_reset();
-	}
-	tty_close();
+    if ( tio_set( tty_fd, &tio ) == ERROR ) {
+        DEBUG(('M',2,"modem_done: tio_set failed: %s", strerror( errno )));
+    }
+
+    modem_hangup();
+    if ( dial_rc == MC_OK ) {
+        modem_stat_collect();
+        modem_reset();
+    }
+    tty_close();
 }

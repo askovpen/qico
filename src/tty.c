@@ -147,62 +147,62 @@ static struct	speedtab {
     int	 nspeed;		/* speed in numeric format */
     char *speed;		/* speed in display format */
 } speedtab[] = {
-	{ B50,	  50,	 "50"	 },
-	{ B75,	  75,	 "75"	 },
-	{ B110,	  110,	 "110"	 },
-	{ B134,	  134,	 "134"	 },
-	{ B150,	  150,	 "150"	 },
-	{ B200,	  200,	 "200"	 },
-	{ B300,	  300,	 "300"	 },
-	{ B600,	  600,	 "600"	 },
+    { B50,	  50,	 "50"	 },
+    { B75,	  75,	 "75"	 },
+    { B110,	  110,	 "110"	 },
+    { B134,	  134,	 "134"	 },
+    { B150,	  150,	 "150"	 },
+    { B200,	  200,	 "200"	 },
+    { B300,	  300,	 "300"	 },
+    { B600,	  600,	 "600"	 },
 #ifdef	B900
-	{ B900,	  900,	 "900"	},
+    { B900,	  900,	 "900"	},
 #endif
-	{ B1200,  1200,	 "1200"	 },
-	{ B1800,  1800,	 "1800"	 },
-	{ B2400,  2400,	 "2400"	 },
+    { B1200,  1200,	 "1200"	 },
+    { B1800,  1800,	 "1800"	 },
+    { B2400,  2400,	 "2400"	 },
 #ifdef	B3600
-	{ B3600,  3600,	 "3600"	},
+    { B3600,  3600,	 "3600"	},
 #endif
-	{ B4800,  4800,	 "4800"	 },
+    { B4800,  4800,	 "4800"	 },
 #ifdef	B7200
-	{ B7200,  7200,  "7200"	},
+    { B7200,  7200,  "7200"	},
 #endif
-	{ B9600,  9600,	 "9600"	 },
+    { B9600,  9600,	 "9600"	 },
 #ifdef	B14400
-	{ B14400, 14400, "14400" },
+    { B14400, 14400, "14400" },
 #endif
 #ifdef	B19200
-	{ B19200, 19200, "19200" },
+    { B19200, 19200, "19200" },
 #endif	/* B19200 */
 #ifdef	B28800
-	{ B28800, 28800, "28800" },
+    { B28800, 28800, "28800" },
 #endif
 #ifdef	B38400
-	{ B38400, 38400, "38400" },
+    { B38400, 38400, "38400" },
 #endif	/* B38400 */
 #ifdef	EXTA
-	{ EXTA,	  19200, "EXTA"	 },
+    { EXTA,	  19200, "EXTA"	 },
 #endif
 #ifdef	EXTB
-	{ EXTB,	  38400, "EXTB"	 },
+    { EXTB,	  38400, "EXTB"	 },
 #endif
 #ifdef	B57600
-	{ B57600, 57600, "57600" },
+    { B57600, 57600, "57600" },
 #endif
 #ifdef	B76800
-	{ B76800, 76800, "76800" },
+    { B76800, 76800, "76800" },
 #endif
 #ifdef	B115200
-	{ B115200,115200,"115200"},
+    { B115200,115200,"115200"},
 #endif
 #ifdef B230400
-	{ B230400,230400,"230400"},
+    { B230400,230400,"230400"},
 #endif
 #ifdef B460800
-	{ B460800,460800,"460800"},
+    { B460800,460800,"460800"},
 #endif
-	{ 0,	  0,	 ""	 }
+    { 0,	  0,	 ""	 }
 };
 
 
@@ -268,49 +268,52 @@ int tty_status = TTY_SUCCESS;
  */
 int tty_select(boolean *rd, boolean *wd, struct timeval *tval)
 {
-	fd_set	rfd, wfd;
-	int rc;
+    fd_set	rfd, wfd;
+    int rc;
 
-	DEBUG(('T',2,"tty_select"));
+    DEBUG(('T',2,"tty_select"));
 
-	FD_ZERO( &rfd );
-	FD_ZERO( &wfd );
-	if ( rd && *rd ) {
-		FD_SET( tty_fd, &rfd );
-		*rd = FALSE;
-	}
-	if ( wd && *wd ) {
-		FD_SET( tty_fd, &wfd );
-		*wd = FALSE;
-	}
-    
-	tty_error = 0;
-	rc = select( tty_fd + 1, &rfd, &wfd, NULL, ( tval ? tval : NULL ));
+    FD_ZERO( &rfd );
+    FD_ZERO( &wfd );
+    if ( rd && *rd ) {
+        FD_SET( tty_fd, &rfd );
+        *rd = FALSE;
+    }
+    if ( wd && *wd ) {
+        FD_SET( tty_fd, &wfd );
+        *wd = FALSE;
+    }
 
-	tty_error = errno;
-	tty_status = TTY_SUCCESS;
-	if ( rc < 0 ) {
-		if ( EWBOEA() ) {
-			tty_status = TTY_TIMEOUT;
-		} else if ( errno == EINTR ) {
-			tty_status = ( tty_online && tty_gothup ) ? TTY_HANGUP : TTY_TIMEOUT;
+    tty_error = 0;
+    rc = select( tty_fd + 1, &rfd, &wfd, NULL, ( tval ? tval : NULL ));
+
+    tty_error = errno;
+    tty_status = TTY_SUCCESS;
+    if ( rc < 0 ) {
+        if ( EWBOEA() ) {
+            tty_status = TTY_TIMEOUT;
+        } else if ( errno == EINTR ) {
+            tty_status = ( tty_online && tty_gothup ) ? TTY_HANGUP : TTY_TIMEOUT;
         } else if ( errno == EPIPE ) {
-		tty_gothup = HUP_LINE;
-		tty_status = TTY_HANGUP;
-        } else
-		tty_status = TTY_ERROR;
-	} else if ( rc == 0 )
-		tty_status = TTY_TIMEOUT;
-	else {
-		if ( rd && FD_ISSET( tty_fd, &rfd ))
-			*rd = TRUE;
-		if ( wd && FD_ISSET( tty_fd, &wfd ))
-			*wd = TRUE;
-	}
+            tty_gothup = HUP_LINE;
+            tty_status = TTY_HANGUP;
+        } else {
+            tty_status = TTY_ERROR;
+        }
+    } else if ( rc == 0 ) {
+        tty_status = TTY_TIMEOUT;
+    } else {
+        if ( rd && FD_ISSET( tty_fd, &rfd )) {
+            *rd = TRUE;
+        }
+        if ( wd && FD_ISSET( tty_fd, &wfd )) {
+            *wd = TRUE;
+        }
+    }
 
-	DEBUG(('T',2,"tty_select: fd=%d rc=%i (rd=%s, wd=%s)", tty_fd, rc, FDS( rd ), FDS( wd )));
+    DEBUG(('T',2,"tty_select: fd=%d rc=%i (rd=%s, wd=%s)", tty_fd, rc, FDS( rd ), FDS( wd )));
 
-	return rc;
+    return rc;
 }
 
 
@@ -319,7 +322,7 @@ int tty_select(boolean *rd, boolean *wd, struct timeval *tval)
  */
 int tty_hasinbuf(void)
 {
-	return ( tty_rx_left > 0 );
+    return ( tty_rx_left > 0 );
 }
 
 
@@ -328,29 +331,30 @@ int tty_hasinbuf(void)
  */
 int tty_hasdata(int sec, int usec)
 {
-	boolean		rd = TRUE;
-	struct timeval	tv;
+    boolean		rd = TRUE;
+    struct timeval	tv;
 
-	DEBUG(('T',5,"tty_hasdata"));
+    DEBUG(('T',5,"tty_hasdata"));
 
-	if ( tty_hasinbuf() )
-		return 1;
+    if ( tty_hasinbuf() ) {
+        return 1;
+    }
 
-	tv.tv_sec = sec;
-	tv.tv_usec = usec;
-	return ( tty_select( &rd, NULL, &tv ) > 0 && rd );
+    tv.tv_sec = sec;
+    tv.tv_usec = usec;
+    return ( tty_select( &rd, NULL, &tv ) > 0 && rd );
 }
 
 
 int tty_hasdata_timed(int *timeout)
 {
-	int	rc;
-	time_t	t = time( NULL );
+    int	rc;
+    time_t	t = time( NULL );
 
-	rc = tty_hasdata( *timeout, 0 );
-	*timeout -= (time( NULL ) - t);
+    rc = tty_hasdata( *timeout, 0 );
+    *timeout -= (time( NULL ) - t);
 
-	return rc;
+    return rc;
 }
 
 
@@ -365,52 +369,57 @@ int tty_hasdata_timed(int *timeout)
  */
 int tty_write(const void *buf, size_t nbytes)
 {
-	int	rc;
+    int	rc;
 
 #ifdef NEED_DEBUG
-	byte	*bbuf = (byte *) buf;
-	int	i;
+    byte	*bbuf = (byte *) buf;
+    int	i;
 #endif
 
-	DEBUG(('T',5,"tty_write"));
+    DEBUG(('T',5,"tty_write"));
 
-	IFGOTHUP;
+    IFGOTHUP;
 
-	if ( nbytes == 0 )
-		return 0;
+    if ( nbytes == 0 ) {
+        return 0;
+    }
 
-	rc = write( tty_fd, buf, nbytes );
+    rc = write( tty_fd, buf, nbytes );
 
-	tty_error = errno;
-	IFGOTHUP;
+    tty_error = errno;
+    IFGOTHUP;
 
-	if ( rc < 0 ) {
-		if ( EWBOEA() ) {
-			tty_status = TTY_TIMEOUT;
-		} else if ( errno == EINTR ) {
-			if ( tty_online && tty_gothup )
-				tty_status = TTY_HANGUP;
-			else
-				tty_status = TTY_TIMEOUT;
-		} else if ( errno == EPIPE ) {
-			tty_gothup = HUP_LINE;
-			tty_status = TTY_HANGUP;
-		} else
-			tty_status = TTY_ERROR;
-	} else if ( rc == 0 ) {
-		tty_status = TTY_ERROR;
-	} else /* rc > 0 */
-		tty_status = TTY_SUCCESS;
+    if ( rc < 0 ) {
+        if ( EWBOEA() ) {
+            tty_status = TTY_TIMEOUT;
+        } else if ( errno == EINTR ) {
+            if ( tty_online && tty_gothup ) {
+                tty_status = TTY_HANGUP;
+            } else {
+                tty_status = TTY_TIMEOUT;
+            }
+        } else if ( errno == EPIPE ) {
+            tty_gothup = HUP_LINE;
+            tty_status = TTY_HANGUP;
+        } else {
+            tty_status = TTY_ERROR;
+        }
+    } else if ( rc == 0 ) {
+        tty_status = TTY_ERROR;
+    } else { /* rc > 0 */
+        tty_status = TTY_SUCCESS;
+    }
 
-	DEBUG(('T',6,"tty_write: rc = %d", rc));
+    DEBUG(('T',6,"tty_write: rc = %d", rc));
 
 #ifdef NEED_DEBUG
-	if ( rc > 0 )
-		for( i = 0; i < rc; i++ )
-			DEBUG(('T',9,"tty_write: '%c' (%d)", C0(bbuf[i]), bbuf[i]));
+    if ( rc > 0 )
+        for( i = 0; i < rc; i++ ) {
+            DEBUG(('T',9,"tty_write: '%c' (%d)", C0(bbuf[i]), bbuf[i]));
+        }
 #endif
 
-	return ( tty_status == TTY_SUCCESS ? rc : tty_status );
+    return ( tty_status == TTY_SUCCESS ? rc : tty_status );
 }
 
 
@@ -425,375 +434,400 @@ int tty_write(const void *buf, size_t nbytes)
  */
 int tty_read(void *buf, size_t nbytes)
 {
-	int	rc;
+    int	rc;
 
 #ifdef NEED_DEBUG
-	byte	*bbuf = (byte *) buf;
-	int	i;
+    byte	*bbuf = (byte *) buf;
+    int	i;
 #endif
 
-	DEBUG(('T',5,"tty_read"));
+    DEBUG(('T',5,"tty_read"));
 
-	IFGOTHUP;
+    IFGOTHUP;
 
-	rc = read( tty_fd, buf, nbytes );
-	IFGOTHUP;
+    rc = read( tty_fd, buf, nbytes );
+    IFGOTHUP;
 
-	tty_error = errno;
-	if ( rc < 0 ) {
-		if ( EWBOEA() ) {
-			tty_status = TTY_TIMEOUT;
-		} else if ( errno == EINTR ) {
-			if ( tty_online && tty_gothup )
-				tty_status = TTY_HANGUP;
-			else
-				tty_status = TTY_TIMEOUT;
-		} else if ( errno == EPIPE ) {
-			tty_gothup = HUP_LINE;
-			tty_status = TTY_HANGUP;
-		} else
-			tty_status = TTY_ERROR;
-	} else if ( rc == 0 ) {
-		tty_status = TTY_ERROR;
-	} else /* rc > 0 */
-		tty_status = TTY_SUCCESS;
+    tty_error = errno;
+    if ( rc < 0 ) {
+        if ( EWBOEA() ) {
+            tty_status = TTY_TIMEOUT;
+        } else if ( errno == EINTR ) {
+            if ( tty_online && tty_gothup ) {
+                tty_status = TTY_HANGUP;
+            } else {
+                tty_status = TTY_TIMEOUT;
+            }
+        } else if ( errno == EPIPE ) {
+            tty_gothup = HUP_LINE;
+            tty_status = TTY_HANGUP;
+        } else {
+            tty_status = TTY_ERROR;
+        }
+    } else if ( rc == 0 ) {
+        tty_status = TTY_ERROR;
+    } else { /* rc > 0 */
+        tty_status = TTY_SUCCESS;
+    }
 
-	DEBUG(('T',6,"tty_read: rc = %d", rc));
+    DEBUG(('T',6,"tty_read: rc = %d", rc));
 
 #ifdef NEED_DEBUG
-	if ( rc > 0 )
-		for( i = 0; i < rc; i++ )
-			DEBUG(('T',9,"tty_read: '%c' (%d)", C0(bbuf[i]), bbuf[i]));
+    if ( rc > 0 )
+        for( i = 0; i < rc; i++ ) {
+            DEBUG(('T',9,"tty_read: '%c' (%d)", C0(bbuf[i]), bbuf[i]));
+        }
 #endif
 
-	return ( tty_status == TTY_SUCCESS ? rc : tty_status );
+    return ( tty_status == TTY_SUCCESS ? rc : tty_status );
 }
 
 
 RETSIGTYPE tty_sighup(int sig)
 {
-	DEBUG(('T',1,"tty_sighup: got SIG%s signal, %d", sigs[sig], tty_gothup));
+    DEBUG(('T',1,"tty_sighup: got SIG%s signal, %d", sigs[sig], tty_gothup));
 
-	getevt();
-	DEBUG(('T',2,"tty_sighup: %d", tty_gothup));
-	if (( is_ip && sig == SIGPIPE ) || ( !is_ip && !tty_dcd( tty_fd )))
-		tty_gothup = HUP_LINE;
-	else
-		tty_gothup = HUP_OPERATOR;
+    getevt();
+    DEBUG(('T',2,"tty_sighup: %d", tty_gothup));
+    if (( is_ip && sig == SIGPIPE ) || ( !is_ip && !tty_dcd( tty_fd ))) {
+        tty_gothup = HUP_LINE;
+    } else {
+        tty_gothup = HUP_OPERATOR;
+    }
 }
 
 
 char *baseport(const char *p)
 {
-	char		*q;
-	static char	pn[MAX_PATH + 5];
+    char		*q;
+    static char	pn[MAX_PATH + 5];
 
-	q = qbasename( p );
-	if ( !q || !*q )
-		return NULL;
+    q = qbasename( p );
+    if ( !q || !*q ) {
+        return NULL;
+    }
 
-	xstrcpy( pn, q, MAX_PATH );
-	if (( q = strrchr( pn, ':' )))
-		*q = 0;
-	return pn;
+    xstrcpy( pn, q, MAX_PATH );
+    if (( q = strrchr( pn, ':' ))) {
+        *q = 0;
+    }
+    return pn;
 }
 
 
 int tty_isfree(const char *port, const char *nodial)
 {
-	int		pid = 0;
-	FILE		*f;
-	struct stat	s;
-	char		lckname[MAX_PATH + 5];
+    int		pid = 0;
+    FILE		*f;
+    struct stat	s;
+    char		lckname[MAX_PATH + 5];
 
-	if ( !port )
-		return 0;
+    if ( !port ) {
+        return 0;
+    }
 
-	if ( nodial ) {
-		snprintf( lckname, MAX_PATH, "%s.%s", nodial, port );
-		if ( !stat( lckname, &s ))
-			return 0;
-	}
+    if ( nodial ) {
+        snprintf( lckname, MAX_PATH, "%s.%s", nodial, port );
+        if ( !stat( lckname, &s )) {
+            return 0;
+        }
+    }
 
-	LCK_NAME(lckname, port);
-	if (( f = fopen( lckname, "r" ))) {
-		fscanf( f, "%d", &pid );
-		fclose( f );
-		if ( pid && kill( pid, 0 ) && ( errno == ESRCH )) {
-			lunlink( lckname );
-			return 1;
-		}
-		return 0;
-	}
-	return 1;
+    LCK_NAME(lckname, port);
+    if (( f = fopen( lckname, "r" ))) {
+        fscanf( f, "%d", &pid );
+        fclose( f );
+        if ( pid && kill( pid, 0 ) && ( errno == ESRCH )) {
+            lunlink( lckname );
+            return 1;
+        }
+        return 0;
+    }
+    return 1;
 }
 
 
 char *tty_findport(slist_t *ports, const char *nodial)
 {
-	for(; ports; ports = ports->next )
-		if( tty_isfree( baseport( ports->str ), nodial ))
-			return ports->str;
-	return NULL;
+    for(; ports; ports = ports->next )
+        if( tty_isfree( baseport( ports->str ), nodial )) {
+            return ports->str;
+        }
+    return NULL;
 }
 
 
 int tty_lock(const char *port)
 {
-	int		rc = -1;
-	char		lckname[MAX_PATH + 5];
-	const char	*p;
+    int		rc = -1;
+    char		lckname[MAX_PATH + 5];
+    const char	*p;
 
-	DEBUG(('M',1,"tty_lock"));
-	if ( !( p = strrchr( port, '/' )))
-		p = port;
-	else
-		p++;
+    DEBUG(('M',1,"tty_lock"));
+    if ( !( p = strrchr( port, '/' ))) {
+        p = port;
+    } else {
+        p++;
+    }
 
-	LCK_NAME(lckname, p);
-	rc = lockpid( lckname );
-	return rc ? 0 : -1;
+    LCK_NAME(lckname, p);
+    rc = lockpid( lckname );
+    return rc ? 0 : -1;
 }
 
 
 void tty_unlock(const char *port)
 {
-	long		pid;
-	char		lckname[MAX_PATH + 5];
-	const char	*p;
-	FILE		*f;
+    long		pid;
+    char		lckname[MAX_PATH + 5];
+    const char	*p;
+    FILE		*f;
 
-	DEBUG(('M',1,"tty_unlock"));
-	if ( !( p = strrchr( port, '/' )))
-		p = port;
-	else
-		p++;
+    DEBUG(('M',1,"tty_unlock"));
+    if ( !( p = strrchr( port, '/' ))) {
+        p = port;
+    } else {
+        p++;
+    }
 
-	LCK_NAME(lckname, p);
-	if (( f = fopen( lckname, "r" ))) {
-		fscanf( f, "%ld", &pid );
-		fclose( f );
-	}
+    LCK_NAME(lckname, p);
+    if (( f = fopen( lckname, "r" ))) {
+        fscanf( f, "%ld", &pid );
+        fclose( f );
+    }
 
-	if ( pid == getpid())
-		lunlink( lckname );
+    if ( pid == getpid()) {
+        lunlink( lckname );
+    }
 }
 
 
 int tty_close(void)
 {
-	if ( !tty_port )
-		return ME_CLOSE;
+    if ( !tty_port ) {
+        return ME_CLOSE;
+    }
 
-	DEBUG(('M',2,"tty_close"));
+    DEBUG(('M',2,"tty_close"));
 
-	tio_flush_queue( tty_fd, TIO_Q_BOTH );
-	tio_set( tty_fd, &tty_stio );
+    tio_flush_queue( tty_fd, TIO_Q_BOTH );
+    tio_set( tty_fd, &tty_stio );
 
-	(void) close( tty_fd );
+    (void) close( tty_fd );
 
-	tty_unlock( tty_port );
-	xfree( tty_port );
-	tty_online = FALSE;
-    
-	return ME_OK;
+    tty_unlock( tty_port );
+    xfree( tty_port );
+    tty_online = FALSE;
+
+    return ME_OK;
 }
 
 
 int tty_local(TIO *tio, int local)
 {
-	signal( SIGHUP, local ? SIG_IGN : tty_sighup );
-	signal( SIGPIPE, local ? SIG_IGN : tty_sighup );
+    signal( SIGHUP, local ? SIG_IGN : tty_sighup );
+    signal( SIGPIPE, local ? SIG_IGN : tty_sighup );
 
-	if ( !isatty( tty_fd ))
-		return ME_NOTATT;
+    if ( !isatty( tty_fd )) {
+        return ME_NOTATT;
+    }
 
-	tio_local_mode( tio, local );
-	tio_set_flow_control( tty_fd, tio, local ? FLOW_NONE : FLOW_HARD );
+    tio_local_mode( tio, local );
+    tio_set_flow_control( tty_fd, tio, local ? FLOW_NONE : FLOW_HARD );
 
-	if ( local )
-		tty_gothup = FALSE;
-	return 1;
+    if ( local ) {
+        tty_gothup = FALSE;
+    }
+    return 1;
 }
 
 
 void tty_bufclear(void)
 {
-	tty_tx_ptr = 0;
-	tty_tx_free = TX_BUF_SIZE;
+    tty_tx_ptr = 0;
+    tty_tx_free = TX_BUF_SIZE;
 }
 
 
 int tty_bufflush(int tsec)
-{	
-	int		rc = OK, restsize = TX_BUF_SIZE - tty_tx_free - tty_tx_ptr;
-	boolean		wd;
-	struct timeval	tv;
-	timer_t		tm;
-    
-	tm = timer_set( tsec );
-	while( TX_BUF_SIZE != tty_tx_free ) {
-		wd = true;
-		tv.tv_sec = timer_rest( tm );
-		tv.tv_usec = 0;
+{
+    int		rc = OK, restsize = TX_BUF_SIZE - tty_tx_free - tty_tx_ptr;
+    boolean		wd;
+    struct timeval	tv;
+    timer_t		tm;
 
-		if (( rc = tty_select( NULL, &wd, &tv )) > 0 && wd ) {
-			rc = tty_write( tty_tx_buf + tty_tx_ptr, restsize );
+    tm = timer_set( tsec );
+    while( TX_BUF_SIZE != tty_tx_free ) {
+        wd = true;
+        tv.tv_sec = timer_rest( tm );
+        tv.tv_usec = 0;
 
-			if ( rc == restsize ) {
-				tty_bufclear();
-			} else if ( rc > 0 ) {
-				tty_tx_ptr += rc;
-				restsize -= rc;
-			} else if ( rc < 0 && tty_status != TTY_TIMEOUT )
-				return ERROR;
-		} else
-			return rc;
+        if (( rc = tty_select( NULL, &wd, &tv )) > 0 && wd ) {
+            rc = tty_write( tty_tx_buf + tty_tx_ptr, restsize );
 
-		if ( timer_expired( tm ))
-			return ERROR;
-	}
-	return rc;
+            if ( rc == restsize ) {
+                tty_bufclear();
+            } else if ( rc > 0 ) {
+                tty_tx_ptr += rc;
+                restsize -= rc;
+            } else if ( rc < 0 && tty_status != TTY_TIMEOUT ) {
+                return ERROR;
+            }
+        } else {
+            return rc;
+        }
+
+        if ( timer_expired( tm )) {
+            return ERROR;
+        }
+    }
+    return rc;
 }
 
 
 int tty_bufblock(const void *data, size_t nbytes)
 {
-	int rc = OK, txptr = TX_BUF_SIZE - tty_tx_free;
-	char *nptr = (char *)data;
+    int rc = OK, txptr = TX_BUF_SIZE - tty_tx_free;
+    char *nptr = (char *)data;
 
-	DEBUG(('T',8,"tty_bufblock: tty_tx_ptr=%d, tty_tx_free=%d, need2buf=%d",
-		tty_tx_ptr,tty_tx_free,nbytes));
+    DEBUG(('T',8,"tty_bufblock: tty_tx_ptr=%d, tty_tx_free=%d, need2buf=%d",
+           tty_tx_ptr,tty_tx_free,nbytes));
 
-	tty_status = TTY_SUCCESS;
+    tty_status = TTY_SUCCESS;
 
-	while ( nbytes ) {
-		if ( nbytes > (size_t) tty_tx_free ) {
-			do {
-				tty_bufflush( 5 );
-				if ( tty_status == TTY_SUCCESS ) {
-					size_t n = MIN( (size_t) tty_tx_free, nbytes);
-					memcpy( tty_tx_buf, nptr, n );
-					tty_tx_free -= n;
-					nbytes -= n;
-					nptr += n;
-				}
-			} while ( tty_status != TTY_SUCCESS );
-		} else {
-			memcpy( (void *) (tty_tx_buf + txptr), nptr, nbytes );
-			tty_tx_free -= nbytes;
-			nbytes = 0;
-		}
-	}
-	return rc;
+    while ( nbytes ) {
+        if ( nbytes > (size_t) tty_tx_free ) {
+            do {
+                tty_bufflush( 5 );
+                if ( tty_status == TTY_SUCCESS ) {
+                    size_t n = MIN( (size_t) tty_tx_free, nbytes);
+                    memcpy( tty_tx_buf, nptr, n );
+                    tty_tx_free -= n;
+                    nbytes -= n;
+                    nptr += n;
+                }
+            } while ( tty_status != TTY_SUCCESS );
+        } else {
+            memcpy( (void *) (tty_tx_buf + txptr), nptr, nbytes );
+            tty_tx_free -= nbytes;
+            nbytes = 0;
+        }
+    }
+    return rc;
 }
 
 
 int tty_bufc(char ch)
 {
-	return tty_bufblock( &ch, 1 );
+    return tty_bufblock( &ch, 1 );
 }
 
 
 int tty_putc(char ch)
 {
-	tty_bufblock( &ch, 1 );
-	return tty_bufflush( 5 );
+    tty_bufblock( &ch, 1 );
+    return tty_bufflush( 5 );
 }
 
 
 int tty_getc(int timeout)
 {
 
-	DEBUG(('T',8,"tty_getc: tty_rx_ptr=%d, tty_rx_left=%d",tty_rx_ptr,tty_rx_left));
-	if ( tty_rx_left == 0 ) {
-		int rc = tty_hasdata( timeout, 0 );
-		/*
-		int rc = ( timeout > 0 ) ? tty_hasdata( timeout, 0 ) : 1;
+    DEBUG(('T',8,"tty_getc: tty_rx_ptr=%d, tty_rx_left=%d",tty_rx_ptr,tty_rx_left));
+    if ( tty_rx_left == 0 ) {
+        int rc = tty_hasdata( timeout, 0 );
+        /*
+        int rc = ( timeout > 0 ) ? tty_hasdata( timeout, 0 ) : 1;
                 */
 
-		IFGOTHUP;
+        IFGOTHUP;
 
-		if ( rc > 0 ) {
-			if (( rc = tty_read( tty_rx_buf, RX_BUF_SIZE )) < 0 ) {
-				IFGOTHUP;
-				return ( EWBOEA()) ? TTY_TIMEOUT : ERROR;
-			} else if ( rc == 0 )
-				return ERROR;
-			tty_rx_ptr = 0;
-			tty_rx_left = rc;
-		} else
-			return ( tty_gothup ? TTY_HANGUP : TTY_TIMEOUT );
-	}
+        if ( rc > 0 ) {
+            if (( rc = tty_read( tty_rx_buf, RX_BUF_SIZE )) < 0 ) {
+                IFGOTHUP;
+                return ( EWBOEA()) ? TTY_TIMEOUT : ERROR;
+            } else if ( rc == 0 ) {
+                return ERROR;
+            }
+            tty_rx_ptr = 0;
+            tty_rx_left = rc;
+        } else {
+            return ( tty_gothup ? TTY_HANGUP : TTY_TIMEOUT );
+        }
+    }
 
-	tty_rx_left--;
-	return tty_rx_buf[tty_rx_ptr++];
+    tty_rx_left--;
+    return tty_rx_buf[tty_rx_ptr++];
 }
 
 
 int tty_getc_timed(int *timeout)
 {
-	int	rc;
-	time_t	t = time( NULL );
+    int	rc;
+    time_t	t = time( NULL );
 
-	rc = tty_getc( *timeout );
-	*timeout -= (time( NULL ) - t);
-	return rc;
+    rc = tty_getc( *timeout );
+    *timeout -= (time( NULL ) - t);
+    return rc;
 }
 
 
-void tty_purge(void) {
-	DEBUG(('M',3,"tty_purge"));
+void tty_purge(void)
+{
+    DEBUG(('M',3,"tty_purge"));
 
-	tty_rx_ptr = tty_rx_left = 0;
-	if ( isatty( tty_fd ))
-		tio_flush_queue( tty_fd, TIO_Q_IN );
+    tty_rx_ptr = tty_rx_left = 0;
+    if ( isatty( tty_fd )) {
+        tio_flush_queue( tty_fd, TIO_Q_IN );
+    }
 }
 
 
-void tty_purgeout(void) {
-	DEBUG(('M',3,"tty_purgeout"));
+void tty_purgeout(void)
+{
+    DEBUG(('M',3,"tty_purgeout"));
 
-	tty_bufclear();
-	if ( isatty( tty_fd ))
-		tio_flush_queue( tty_fd, TIO_Q_OUT );
+    tty_bufclear();
+    if ( isatty( tty_fd )) {
+        tio_flush_queue( tty_fd, TIO_Q_OUT );
+    }
 }
 
 
 int tty_send_break(void)
 {
 #ifdef POSIX_TERMIOS
-	if ( tcsendbreak( tty_fd, 0 ) < 0 ) {
-		DEBUG(('M',3,"tcsendbreak() failed"));
-		return -1;
-	}
+    if ( tcsendbreak( tty_fd, 0 ) < 0 ) {
+        DEBUG(('M',3,"tcsendbreak() failed"));
+        return -1;
+    }
 #endif
 #ifdef SYSV_TERMIO
-	if ( ioctl( tty_fd, TCSBRK, 0 ) < 0 ) {
-		DEBUG(('M',3,"ioctl( TCSBRK ) failed"));
-		return -1;
-	}
+    if ( ioctl( tty_fd, TCSBRK, 0 ) < 0 ) {
+        DEBUG(('M',3,"ioctl( TCSBRK ) failed"));
+        return -1;
+    }
 #endif
 #ifdef BSD_SGTTY
-	if ( ioctl( tty_fd, TIOCSBRK, 0 ) < 0 ) {
-		DEBUG(('M',3,"ioctl( TIOCSBRK ) failed"));
-		return -1;
-	}
-	qsleep( 1000 );
-	if ( ioctl( tty_fd, TIOCCBRK, 0 ) < 0 ) {
-		DEBUG(('M',3,"ioctl( TIOCCBRK ) failed"));
-		return -1;
-	}
+    if ( ioctl( tty_fd, TIOCSBRK, 0 ) < 0 ) {
+        DEBUG(('M',3,"ioctl( TIOCSBRK ) failed"));
+        return -1;
+    }
+    qsleep( 1000 );
+    if ( ioctl( tty_fd, TIOCCBRK, 0 ) < 0 ) {
+        DEBUG(('M',3,"ioctl( TIOCCBRK ) failed"));
+        return -1;
+    }
 #endif
 
-	return 0;
+    return 0;
 }
 
 
 /* Return the amount of remaining bytes to be transmitted */
 int tty_hasout(void)
 {
-	return (tty_tx_free != TX_BUF_SIZE);
+    return (tty_tx_free != TX_BUF_SIZE);
 }
 
 
@@ -802,11 +836,11 @@ int tty_hasout(void)
  */
 int tty_dcd(int fd)
 {
-	int rs_lines = tio_get_rs232_lines( fd );
+    int rs_lines = tio_get_rs232_lines( fd );
 
-	DEBUG(('M',2,"tty_dcd: CD is %s",(rs_lines & TIO_F_DCD ? "On" : "Off")));
+    DEBUG(('M',2,"tty_dcd: CD is %s",(rs_lines & TIO_F_DCD ? "On" : "Off")));
 
-	return ( rs_lines & TIO_F_DCD );
+    return ( rs_lines & TIO_F_DCD );
 }
 
 
@@ -815,10 +849,11 @@ int tty_dcd(int fd)
  */
 static void fd_close_all(int startfd)
 {
-	int fdlimit = sysconf(_SC_OPEN_MAX);
+    int fdlimit = sysconf(_SC_OPEN_MAX);
 
-	while( startfd < fdlimit )
-		close( startfd++ );
+    while( startfd < fdlimit ) {
+        close( startfd++ );
+    }
 }
 
 
@@ -828,40 +863,40 @@ static void fd_close_all(int startfd)
 int fd_make_stddev(int fd)
 {
 
-	fflush( stdin );
-	fflush( stdout );
-	fflush( stderr );
+    fflush( stdin );
+    fflush( stdout );
+    fflush( stderr );
 
-	if ( fd > 0 ) {
-		(void) close( 0 );
-		if ( dup( fd ) != 0 ) {
-			DEBUG(('T',2,"fd_make_stddev: can't dup(fd=%d) to stdin", fd));
-			return ERROR;
-		}
-		close( fd );
-	}
+    if ( fd > 0 ) {
+        (void) close( 0 );
+        if ( dup( fd ) != 0 ) {
+            DEBUG(('T',2,"fd_make_stddev: can't dup(fd=%d) to stdin", fd));
+            return ERROR;
+        }
+        close( fd );
+    }
 
-	(void) close( 1 );
-	if ( dup( 0 ) != 1 ) {
-		DEBUG(('T',2,"fd_make_stddev: can't dup(fd=%d) to stdout", fd));
-		return ERROR;
-	}
+    (void) close( 1 );
+    if ( dup( 0 ) != 1 ) {
+        DEBUG(('T',2,"fd_make_stddev: can't dup(fd=%d) to stdout", fd));
+        return ERROR;
+    }
 
-	(void) close( 2 );
-	if ( dup( 0 ) != 2 ) {
-		DEBUG(('T',2,"fd_make_stddev: can't dup(0) to stderr"));
-		return ERROR;
-	}
+    (void) close( 2 );
+    if ( dup( 0 ) != 2 ) {
+        DEBUG(('T',2,"fd_make_stddev: can't dup(0) to stderr"));
+        return ERROR;
+    }
 
-	setbuf( stdin,  (char *) NULL );
-	setbuf( stdout, (char *) NULL );
-	setbuf( stderr, (char *) NULL );
+    setbuf( stdin,  (char *) NULL );
+    setbuf( stdout, (char *) NULL );
+    setbuf( stderr, (char *) NULL );
 
-	clearerr( stdin );
-	clearerr( stdout );
-	clearerr( stderr );
+    clearerr( stdin );
+    clearerr( stdout );
+    clearerr( stderr );
 
-	return OK;
+    return OK;
 }
 
 
@@ -872,38 +907,39 @@ int fd_make_stddev(int fd)
  */
 int fd_set_nonblock(int fd, int mode)
 {
-	int misc;
+    int misc;
 
 #if defined(FIONBIO)
 
-	/*
-	 * Set non-blocking I/O mode on sockets
-	 */
-	misc = 1;
-	if ( ioctl( fd, FIONBIO, &misc, sizeof( misc )) == -1 ) {
-		DEBUG(('T',1,"ioctl: can't set %sblocking mode on fd %d: %s",
-			(mode ? "non-" : ""), fd, strerror( errno )));
-		return -1;
-	}
+    /*
+     * Set non-blocking I/O mode on sockets
+     */
+    misc = 1;
+    if ( ioctl( fd, FIONBIO, &misc, sizeof( misc )) == -1 ) {
+        DEBUG(('T',1,"ioctl: can't set %sblocking mode on fd %d: %s",
+               (mode ? "non-" : ""), fd, strerror( errno )));
+        return -1;
+    }
 #endif
 
-	misc = fcntl( fd, F_GETFL, 0);
-	if ( misc == -1 ) {
-		DEBUG(('T',1,"fnctl: can't get flags on fd %d: %s",
-			fd, strerror( errno )));
-		return -1;
-	}
+    misc = fcntl( fd, F_GETFL, 0);
+    if ( misc == -1 ) {
+        DEBUG(('T',1,"fnctl: can't get flags on fd %d: %s",
+               fd, strerror( errno )));
+        return -1;
+    }
 
-	if ( mode )
-		misc |= O_NONBLOCK;
-	else
-		misc &= ~O_NONBLOCK;
+    if ( mode ) {
+        misc |= O_NONBLOCK;
+    } else {
+        misc &= ~O_NONBLOCK;
+    }
 
-	if (( misc = fcntl( fd, F_SETFL, misc )) == -1 ) {
-		DEBUG(('T',1,"fnctl: can't set %sblocking mode on fd %d: %s",
-			(mode ? "non-" : ""), fd, strerror( errno )));
-	}
-	return misc;
+    if (( misc = fcntl( fd, F_SETFL, misc )) == -1 ) {
+        DEBUG(('T',1,"fnctl: can't set %sblocking mode on fd %d: %s",
+               (mode ? "non-" : ""), fd, strerror( errno )));
+    }
+    return misc;
 }
 
 
@@ -914,30 +950,27 @@ int fd_set_nonblock(int fd, int mode)
 
 /* get current tio settings for given filedescriptor */
 int tio_get(int fd, TIO *t)
-{ 
+{
 #ifdef SYSV_TERMIO
-    if ( ioctl( fd, TCGETA, t ) < 0 )
-    {
+    if ( ioctl( fd, TCGETA, t ) < 0 ) {
         DEBUG(('T',3,"TCGETA failed"));
         return ERROR;
     }
 #endif
 #ifdef POSIX_TERMIOS
-    if ( tcgetattr( fd, t ) < 0 )
-    {
+    if ( tcgetattr( fd, t ) < 0 ) {
         DEBUG(('T',3,"tcgetattr failed"));
         return ERROR;
     }
 #endif
 #ifdef BSD_SGTTY
-    if ( gtty( fd, t ) < 0 )
-    {
+    if ( gtty( fd, t ) < 0 ) {
         DEBUG(('T',3,"gtty failed"));
         return ERROR;
     }
 #endif
     DEBUG(('T',4,"tio_get: c_iflag=%08x, c_oflag=%08x, c_cflag=%08x, c_lflag=%08x",
-        t->c_iflag, t->c_oflag, t->c_cflag, t->c_lflag));
+           t->c_iflag, t->c_oflag, t->c_cflag, t->c_lflag));
     return OK;
 }
 
@@ -946,29 +979,26 @@ int tio_get(int fd, TIO *t)
 int tio_set(int fd, TIO *t)
 {
 #ifdef SYSV_TERMIO
-    if ( ioctl( fd, TCSETA, t ) < 0 )
-    {
+    if ( ioctl( fd, TCSETA, t ) < 0 ) {
         DEBUG(('T',3,"ioctl TCSETA failed"));
         return ERROR;
     }
 #endif
 #ifdef POSIX_TERMIOS
-    if ( tcsetattr( fd, TCSANOW, t ) < 0 )
-    {
+    if ( tcsetattr( fd, TCSANOW, t ) < 0 ) {
         DEBUG(('T',3,"tcsetattr failed"));
         return ERROR;
     }
 #endif /* posix_termios */
 
 #ifdef BSD_SGTTY
-    if ( stty( fd, t ) < 0 )
-    {
+    if ( stty( fd, t ) < 0 ) {
         DEBUG(('T',3,"stty failed"));
         return ERROR;
     }
 #endif
     DEBUG(('T',4,"tio_set: c_iflag=%08x, c_oflag=%08x, c_cflag=%08x, c_lflag=%08x",
-        t->c_iflag, t->c_oflag, t->c_cflag, t->c_lflag));
+           t->c_iflag, t->c_oflag, t->c_cflag, t->c_lflag));
     return OK;
 }
 
@@ -981,10 +1011,11 @@ int tio_set_speed(TIO *t, unsigned int speed)
 {
     int i, symspeed = 0;
 
-    for( i = 0; speedtab[i].cbaud != 0; i++ )
-    {
-	if ( speedtab[i].nspeed == speed ) 
-		{ symspeed = speedtab[i].cbaud; break; }
+    for( i = 0; speedtab[i].cbaud != 0; i++ ) {
+        if ( speedtab[i].nspeed == speed ) {
+            symspeed = speedtab[i].cbaud;
+            break;
+        }
     }
 
     if ( symspeed == 0 ) {
@@ -994,7 +1025,7 @@ int tio_set_speed(TIO *t, unsigned int speed)
     }
 
     DEBUG(('T',2,"tss: set speed to %d (%03o)", speed, symspeed));
-	
+
 #ifdef SYSV_TERMIO
     t->c_cflag = ( t->c_cflag & ~CBAUD) | symspeed;
 #endif
@@ -1025,12 +1056,13 @@ int tio_get_speed(TIO *t)
     struct speedtab *st;
 
     for( st = speedtab; st->nspeed != 0; st++ ) {
-        if ( st->cbaud == cbaud )
-	    break;
+        if ( st->cbaud == cbaud ) {
+            break;
+        }
     }
     return st->nspeed;
 }
- 
+
 
 /* set "sane" mode, usable for login, ...
  * unlike the other tio_mode_* functions, this function initializes
@@ -1038,15 +1070,17 @@ int tio_get_speed(TIO *t)
  */
 void tio_local_mode(TIO * t, int local)
 {
-	if ( local )
+    if ( local )
 #if defined(SYSV_TERMIO) || defined( POSIX_TERMIOS )
-		t->c_cflag |= CLOCAL;
-	else
-		t->c_cflag &= ~CLOCAL;
+        t->c_cflag |= CLOCAL;
+    else {
+        t->c_cflag &= ~CLOCAL;
+    }
 #else		/* BSD_SGTTY (tested only on NeXT yet, but should work) */
-		t->sg_flags &= ~LNOHANG;
-	else
-		t->sg_flags |= LNOHANG ;
+        t->sg_flags &= ~LNOHANG;
+    else {
+        t->sg_flags |= LNOHANG ;
+    }
 #endif
 }
 
@@ -1062,7 +1096,7 @@ void tio_raw_mode(TIO * t)
 #if defined(SYSV_TERMIO) || defined( POSIX_TERMIOS)
 #if 0
     t->c_iflag &= ( IXON | IXOFF | IXANY );	/* clear all flags except */
-						/* xon / xoff handshake */
+    /* xon / xoff handshake */
     t->c_oflag  = 0;				/* no output processing */
     t->c_lflag  = 0;				/* no signals, no echo */
 #endif /* 0 */
@@ -1140,7 +1174,7 @@ void tio_default_cc(TIO *t)
 }
 
 
-/* 
+/*
  * set flow control according to the <type> parameter. It can be any
  * combination of
  *   FLOW_XON_IN - use Xon/Xoff on incoming data
@@ -1158,23 +1192,26 @@ int tio_set_flow_control(int fd, TIO *t, int type)
 #endif
 
     DEBUG(('T',2,"tio_set_flow_control(%s%s%s%s )",
-        type & FLOW_HARD   ? " HARD": "",
-        type & FLOW_XON_IN ? " XON_IN": "",
-        type & FLOW_XON_OUT? " XON_OUT": "",
-        type == FLOW_NONE ? " NONE" : "" ));
-    
+           type & FLOW_HARD   ? " HARD": "",
+           type & FLOW_XON_IN ? " XON_IN": "",
+           type & FLOW_XON_OUT? " XON_OUT": "",
+           type == FLOW_NONE ? " NONE" : "" ));
+
 #if defined( SYSV_TERMIO ) || defined( POSIX_TERMIOS )
     t->c_cflag &= ~HARDW_HS;
     t->c_iflag &= ~( IXON | IXOFF | IXANY );
 
-    if ( type & FLOW_HARD )
+    if ( type & FLOW_HARD ) {
         t->c_cflag |= HARDW_HS;
-    if ( type & FLOW_XON_IN )
+    }
+    if ( type & FLOW_XON_IN ) {
         t->c_iflag |= IXOFF;
+    }
     if ( type & FLOW_XON_OUT ) {
         t->c_iflag |= IXON;
-        if ( type & FLOW_XON_IXANY )
+        if ( type & FLOW_XON_IXANY ) {
             t->c_iflag |= IXANY;
+        }
     }
 #else
 # ifdef NEXTSGTTY
@@ -1192,14 +1229,15 @@ int tio_set_flow_control(int fd, TIO *t, int type)
         DEBUG(('T',3,"ioctl TCGETX"));
         return ERROR;
     }
-    if ( type & FLOW_HARD )
+    if ( type & FLOW_HARD ) {
         tix.x_hflag |= (RTSXOFF | CTSXON);
-    else
+    } else {
         tix.x_hflag &= ~(RTSXOFF | CTSXON);
-    
+    }
+
     if ( ioctl( fd, TCSETX, &tix ) < 0 ) {
         DEBUG(('T',3,"ioctl TCSETX" ));
-	return ERROR;
+        return ERROR;
     }
 #endif
 
@@ -1216,8 +1254,9 @@ int tio_trans_speed(unsigned int speed)
     struct speedtab *st;
 
     for( st = speedtab; st->nspeed != 0; st++ ) {
-        if ( st->nspeed == speed )
+        if ( st->nspeed == speed ) {
             break;
+        }
     }
     return st->cbaud;
 }
@@ -1230,7 +1269,7 @@ int tio_toggle_dtr(int fd, int msec)
 {
 #if defined(TIOCMBIS) && \
     ( defined(sun) || defined(SVR4) || defined(NeXT) || defined(linux) )
-    
+
     int mctl = TIOCM_DTR;
 
     DEBUG(('T',2,"tio_toggle_dtr: %d msec", msec));
@@ -1243,7 +1282,7 @@ int tio_toggle_dtr(int fd, int msec)
         DEBUG(('T',2,"tio_toggle_dtr: TIOCMBIC failed"));
         return ERROR;
     }
-    
+
     qsleep( msec );
 
 #if !defined( TIOCM_VALUE)
@@ -1269,7 +1308,7 @@ int tio_toggle_dtr(int fd, int msec)
         DEBUG(('T',2,"tio_toggle_dtr: MCSETAF failed"));
         return ERROR;
     }
-    
+
     qsleep( msec );
 
     if ( ioctl( fd, MCGETA, &mflag ) < 0 ) {
@@ -1284,7 +1323,7 @@ int tio_toggle_dtr(int fd, int msec)
     return OK;
 
 #else /* !MCGETA */
-    
+
     /* The "standard" way of doing things - via speed = B0
      */
     TIO t, save_t;
@@ -1292,13 +1331,13 @@ int tio_toggle_dtr(int fd, int msec)
 
     DEBUG(('T',2,"tio_toggle_dtr: %d msec", msec));
     if ( tio_get( fd, &t ) == ERROR ) {
-         DEBUG(('T',2,"tio_toggle_dtr: tio_get failed"));
-         return ERROR;
+        DEBUG(('T',2,"tio_toggle_dtr: tio_get failed"));
+        return ERROR;
     }
 
     save_t = t;
-    
-#ifdef SYSV_TERMIO 
+
+#ifdef SYSV_TERMIO
     t.c_cflag = ( t.c_cflag & ~CBAUD ) | B0;		/* speed = 0 */
 #endif
 #ifdef POSIX_TERMIOS
@@ -1309,10 +1348,10 @@ int tio_toggle_dtr(int fd, int msec)
     t.sg_ispeed = t.sg_ospeed = B0
 #endif
 
-    tio_set( fd, &t );
+                                tio_set( fd, &t );
     qsleep( msec );
     result = tio_set( fd, &save_t );
-    
+
     DEBUG(('T',2,"tio_toggle_dtr: result %d", result));
     return result;
 #endif					/* !MCSETA */
@@ -1330,39 +1369,58 @@ int tio_flush_queue(int fd, int queue)
     int r = OK;
 #ifdef POSIX_TERMIOS
     switch( queue ) {
-        case TIO_Q_IN:   r = tcflush( fd, TCIFLUSH ); break;
-        case TIO_Q_OUT:  r = tcflush( fd, TCOFLUSH ); break;
-        case TIO_Q_BOTH: r = tcflush( fd, TCIOFLUSH );break;
-        default:
-            DEBUG(('T',2,"tio_flush_queue: invalid ``queue'' argument (%d)", queue ));
-            return ERROR;
+    case TIO_Q_IN:
+        r = tcflush( fd, TCIFLUSH );
+        break;
+    case TIO_Q_OUT:
+        r = tcflush( fd, TCOFLUSH );
+        break;
+    case TIO_Q_BOTH:
+        r = tcflush( fd, TCIOFLUSH );
+        break;
+    default:
+        DEBUG(('T',2,"tio_flush_queue: invalid ``queue'' argument (%d)", queue ));
+        return ERROR;
     }
 #endif
 #ifdef SYSV_TERMIO
     switch ( queue ) {
-        case TIO_Q_IN:   r = ioctl( fd, TCFLSH, 0 ); break;
-        case TIO_Q_OUT:  r = ioctl( fd, TCFLSH, 1 ); break;
-        case TIO_Q_BOTH: r = ioctl( fd, TCFLSH, 2 ); break;
-        default:
-            DEBUG(('T',2,"tio_flush_queue: invalid ``queue'' argument (%d)", queue ));
-            return ERROR;
+    case TIO_Q_IN:
+        r = ioctl( fd, TCFLSH, 0 );
+        break;
+    case TIO_Q_OUT:
+        r = ioctl( fd, TCFLSH, 1 );
+        break;
+    case TIO_Q_BOTH:
+        r = ioctl( fd, TCFLSH, 2 );
+        break;
+    default:
+        DEBUG(('T',2,"tio_flush_queue: invalid ``queue'' argument (%d)", queue ));
+        return ERROR;
     }
 #endif
 #ifdef BSD_SGTTY
     int arg;
-    
+
     switch ( queue ) {
-        case TIO_Q_IN:   arg = FREAD; break;
-        case TIO_Q_OUT:  arg = FWRITE; break;
-        case TIO_Q_BOTH: arg = FREAD | FWRITE; break;
-        default:
-            DEBUG(('T',2,"tio_flush_queue: invalid ``queue'' argument (%d)", queue ));
-            return ERROR;
+    case TIO_Q_IN:
+        arg = FREAD;
+        break;
+    case TIO_Q_OUT:
+        arg = FWRITE;
+        break;
+    case TIO_Q_BOTH:
+        arg = FREAD | FWRITE;
+        break;
+    default:
+        DEBUG(('T',2,"tio_flush_queue: invalid ``queue'' argument (%d)", queue ));
+        return ERROR;
     }
     r = ioctl( fd, TIOCFLUSH, (char *) &arg );
 #endif
-    if ( r != 0 )
+    if ( r != 0 ) {
         DEBUG(('T',2,"tio: cannot flush queue" ));
+    }
 
     return r;
 }
@@ -1404,22 +1462,22 @@ int tio_get_rs232_lines(int fd)
 {
     int flags;
 #ifdef TIO_F_SYSTEM_DEFS
-    if ( ioctl(fd, TIOCMGET, &flags ) < 0 )
+    if ( ioctl(fd, TIOCMGET, &flags ) < 0 ) {
         DEBUG(('M',3,"tio_get_rs232_lines: TIOCMGET failed"));
+    }
 
 #else /* !TIO_F_SYSTEM_DEFS */
     flags=-1;
 #endif
 
-    if ( flags != -1 )
-    {
+    if ( flags != -1 ) {
         DEBUG(('M',3,"tio_get_rs232_lines: status: [%s][%s][%s][%s][%s][%s]",
-            ( flags & TIO_F_RTS ) ? "RTS" : "rts",
-            ( flags & TIO_F_CTS ) ? "CTS" : "cts",
-            ( flags & TIO_F_DSR ) ? "DSR" : "dsr",
-            ( flags & TIO_F_DTR ) ? "DTR" : "dtr",
-            ( flags & TIO_F_DCD ) ? "DCD" : "dcd",
-            ( flags & TIO_F_RI  ) ? "RI" : "ri" ));
+               ( flags & TIO_F_RTS ) ? "RTS" : "rts",
+               ( flags & TIO_F_CTS ) ? "CTS" : "cts",
+               ( flags & TIO_F_DSR ) ? "DSR" : "dsr",
+               ( flags & TIO_F_DTR ) ? "DTR" : "dtr",
+               ( flags & TIO_F_DCD ) ? "DCD" : "dcd",
+               ( flags & TIO_F_RI  ) ? "RI" : "ri" ));
     }
     return flags;
 }

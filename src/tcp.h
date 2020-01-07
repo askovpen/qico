@@ -33,7 +33,7 @@
 
 /* max hostname size */
 #ifndef MAXHOSTNAMELEN
-  #define MAXHOSTNAMELEN 255
+#define MAXHOSTNAMELEN 255
 #endif
 
 char *get_hostname(struct sockaddr *, socklen_t, char *, int);

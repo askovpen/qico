@@ -1,7 +1,7 @@
 /**********************************************************
  * File: vartree.h
  * Created at Mon Nov 12 14:48:45 2001 by lev // lev@serebryakov.spb.ru
- * 
+ *
  * $Id: vartree.h,v 1.1 2002/03/16 15:59:39 lev Exp $
  **********************************************************/
 #ifndef __VARTREE_H__
@@ -18,55 +18,55 @@
 
 /* Full ID -- number of components + all components */
 typedef struct _uniid {
-	INT32 l;
-	INT32 *id;
+    INT32 l;
+    INT32 *id;
 } uniid_t;
 
 /* List */
 typedef struct _varlist {
-	char type;
-	int length;
-	struct _unival *head;
-	struct _unival *tail;
+    char type;
+    int length;
+    struct _unival *head;
+    struct _unival *tail;
 } varlist_t;
 
 /* Object */
 typedef struct _varobj {
-	char *type;
-	/* Really -- array */
-	struct _unival *components;
+    char *type;
+    /* Really -- array */
+    struct _unival *components;
 } varobj_t;
 
 /* Any value -- DOESN'T STORE TYPE! */
 typedef struct _unival {
-	enum _unival_value {
-		CHAR	c;
-		CHAR	*s;
-		struct _unival_bin_val {
-			UINT32	l;
-			CHAR	*d;
-		}		b;
-		INT32	i;
-		ftnaddr_t a;
+    enum _unival_value {
+        CHAR	c;
+        CHAR	*s;
+        struct _unival_bin_val {
+            UINT32	l;
+            CHAR	*d;
+        }		b;
+        INT32	i;
+        ftnaddr_t a;
         struct _varlist l;
-		struct _varobj o;
-	} v;
-	/* To link them in list */
-	struct _unival *n;
-	struct _unival *p;
+        struct _varobj o;
+    } v;
+    /* To link them in list */
+    struct _unival *n;
+    struct _unival *p;
 } unival_t;
 
 typedef struct _treenode {
-	INT32 id;
-	char type;
-	unival_t *v;
-	/* List */
-	struct _treenode *childs;
-	/* Pointers */
-	struct _treenode *next;
-	struct _treenode *prev;
-	/* Any data for callbacks */
-	void *data;
+    INT32 id;
+    char type;
+    unival_t *v;
+    /* List */
+    struct _treenode *childs;
+    /* Pointers */
+    struct _treenode *next;
+    struct _treenode *prev;
+    /* Any data for callbacks */
+    void *data;
 } treenode_t;
 
 treenode_t *vt_node_Create(INT32 id);

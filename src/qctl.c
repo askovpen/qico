@@ -90,7 +90,7 @@
 #include "clserv.h"
 
 #ifdef DEBUG
-    #undef DEBUG
+#undef DEBUG
 #endif
 #define DEBUG(p)
 
@@ -103,11 +103,11 @@ static char buf[MSG_BUFFER];
 static void usage(char *ex)
 {
     printf( "usage: %s [<options>] [<nodes>] [<files>]\n"
-          "<nodes>        must be in ftn-style (i.e. zone:net/node[.point])\n"
-          "-h             this help screen\n"
-          "-P port        connect to <port> (default: qicoui or %u)\n"
-          "-a host        connect to <host> (default: localhost)\n"
-          "-w password    set <password> for connect.\n", ex, DEF_SERV_PORT );
+            "<nodes>        must be in ftn-style (i.e. zone:net/node[.point])\n"
+            "-h             this help screen\n"
+            "-P port        connect to <port> (default: qicoui or %u)\n"
+            "-a host        connect to <host> (default: localhost)\n"
+            "-w password    set <password> for connect.\n", ex, DEF_SERV_PORT );
     puts( "-q             stop daemon\n"
           "-Q             force queue rescan\n"
           "-R             reread config\n"
@@ -153,9 +153,15 @@ static int getanswer(void)
         write_log("connection to server broken");
         return 1;
     }
-    if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
-    if(rc<3||(FETCH16(buf)&&FETCH16(buf)!=(unsigned short)getpid()))return 1;
-    if(buf[2])write_log(buf+3);
+    if(rc>0&&rc<MSG_BUFFER) {
+        buf[rc]=0;
+    }
+    if(rc<3||(FETCH16(buf)&&FETCH16(buf)!=(unsigned short)getpid())) {
+        return 1;
+    }
+    if(buf[2]) {
+        write_log(buf+3);
+    }
     alarm(0);
     signal(SIGALRM, SIG_DFL);
     return buf[2];
@@ -163,19 +169,20 @@ static int getanswer(void)
 
 static int getnodeinfo(void)
 {
-	int	rc;
-	char	*p, *t;
+    int	rc;
+    char	*p, *t;
 
-	if ( !getanswer() )
-		for( p = buf + 3, rc = 0; strlen( p ); rc++ ) {
-			printf( "%s: %s\n", infostrs[rc], p );
+    if ( !getanswer() )
+        for( p = buf + 3, rc = 0; strlen( p ); rc++ ) {
+            printf( "%s: %s\n", infostrs[rc], p );
 
-			if ( rc == 5 && (t = wktime_str( p )))
-				printf( " WkTime: %s\n", t );
+            if ( rc == 5 && (t = wktime_str( p ))) {
+                printf( " WkTime: %s\n", t );
+            }
 
-			p += strlen( p ) + 1;
-		}
-	return buf[2];
+            p += strlen( p ) + 1;
+        }
+    return buf[2];
 }
 
 static int getqueueinfo(void)
@@ -190,16 +197,18 @@ static int getqueueinfo(void)
     do {
         if(!getanswer())
             if(buf[3]) {
-            a = buf + 4;
-            m = a + strlen(a) + 1;
-            f = m + strlen(m) + 1;
-            t = f + strlen(f) + 1;
-            p = t + strlen(t) + 1;
-            sscanf(p,"%ld",&flags);
-            for(k=0;k<Q_MAXBIT;k++) cflags[k] = (flags&(1<<k))?qflgs[k]:'.';
-            cflags[Q_MAXBIT] = '\x00';
-            printf("%-20s %10s %10s %10s %11s\n",a,m,f,t,cflags);
-        }
+                a = buf + 4;
+                m = a + strlen(a) + 1;
+                f = m + strlen(m) + 1;
+                t = f + strlen(f) + 1;
+                p = t + strlen(t) + 1;
+                sscanf(p,"%ld",&flags);
+                for(k=0; k<Q_MAXBIT; k++) {
+                    cflags[k] = (flags&(1<<k))?qflgs[k]:'.';
+                }
+                cflags[Q_MAXBIT] = '\x00';
+                printf("%-20s %10s %10s %10s %11s\n",a,m,f,t,cflags);
+            }
     } while (buf[3]);
     return buf[2];
 }
@@ -214,22 +223,28 @@ int main(int argc, char **argv,char **envp)
 {
     int action=-1, kfs=0, len=0,lkfs,rc=1;
     char filename[MAX_PATH];
-    unsigned char digest[16]={0};
+    unsigned char digest[16]= {0};
     char c,*str=NULL,flv='?',*port=NULL,*addr=NULL,*tty=NULL,*pwd=NULL;
     struct stat filestat;
 #ifdef HAVE_SETLOCALE
-     setlocale(LC_ALL, "C");
+    setlocale(LC_ALL, "C");
 #endif
-     while((c=getopt(argc, argv, "Khqovrp:fkRQH:s:x:P:a:w:"))!=EOF) {
+    while((c=getopt(argc, argv, "Khqovrp:fkRQH:s:x:P:a:w:"))!=EOF) {
         switch(c) {
         case 'P':
-            if(optarg&&*optarg)port=xstrdup(optarg);
+            if(optarg&&*optarg) {
+                port=xstrdup(optarg);
+            }
             break;
         case 'a':
-            if(optarg&&*optarg)addr=xstrdup(optarg);
+            if(optarg&&*optarg) {
+                addr=xstrdup(optarg);
+            }
             break;
         case 'w':
-            if(optarg&&*optarg)pwd=xstrdup(optarg);
+            if(optarg&&*optarg) {
+                pwd=xstrdup(optarg);
+            }
             break;
         case 'k':
             kfs=1;
@@ -276,7 +291,9 @@ int main(int argc, char **argv,char **envp)
             action=QR_SCAN;
             break;
         case 'H':
-            if(optarg&&*optarg)tty=xstrdup(optarg);
+            if(optarg&&*optarg) {
+                tty=xstrdup(optarg);
+            }
             action=QR_HANGUP;
             break;
         case 'v':
@@ -286,10 +303,12 @@ int main(int argc, char **argv,char **envp)
         }
     }
     if(action!=QR_QUIT
-     &&action!=QR_SCAN
-     &&action!=QR_CONF
-     &&action!=QR_QUEUE
-     &&optind>=argc)usage(argv[0]);
+            &&action!=QR_SCAN
+            &&action!=QR_CONF
+            &&action!=QR_QUEUE
+            &&optind>=argc) {
+        usage(argv[0]);
+    }
 
     signal(SIGPIPE,SIG_IGN);
     sock=cls_conn(CLS_UI,port,addr);
@@ -338,56 +357,62 @@ int main(int argc, char **argv,char **envp)
     buf[2]=action;
 
     switch(action) {
-        case QR_QUIT:
-        case QR_SCAN:
-        case QR_CONF:
+    case QR_QUIT:
+    case QR_SCAN:
+    case QR_CONF:
         rc=xsendget(sock,buf,3);
         break;
-        case QR_INFO:
+    case QR_INFO:
         xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
         xsend(sock,buf,strlen(argv[optind])+4);
         rc=getnodeinfo();
         break;
-        case QR_KILL:
-        case QR_POLL:
+    case QR_KILL:
+    case QR_POLL:
         do {
-            STORE16(buf,0);buf[2]=action;
+            STORE16(buf,0);
+            buf[2]=action;
             xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
-              buf[4+strlen(buf+3)]=flv;
+            buf[4+strlen(buf+3)]=flv;
             rc=xsendget(sock,buf,strlen(argv[optind++])+8);
         } while(optind<argc);
         break;
-        case QR_HANGUP:
+    case QR_HANGUP:
         if(tty) {
             strncpy(buf+3,tty,16);
             rc=xsendget(sock,buf,strlen(buf+3));
-        } else usage(argv[0]);
+        } else {
+            usage(argv[0]);
+        }
         break;
-        case QR_STS:
+    case QR_STS:
         xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
         len=strlen(argv[optind])+4;
         xstrcpy(buf+len, str, MSG_BUFFER-len);
         rc=xsendget(sock,buf,len+strlen(str)+1);
         break;
-        case QR_REQ:
-        for(str=buf+3;optind<argc;optind++) {
+    case QR_REQ:
+        for(str=buf+3; optind<argc; optind++) {
             xstrcpy(str, argv[optind], MSG_BUFFER-(str-(char*)buf));
             str+=strlen(str)+1;
         }
-        xstrcpy(str, "", 2);str+=2;
+        xstrcpy(str, "", 2);
+        str+=2;
         rc=xsendget(sock,buf,str-buf);
         break;
-        case QR_SEND: {
+    case QR_SEND: {
         int nf=0;
         str=buf+3;
         xstrcpy(str, argv[optind++], MSG_BUFFER-3);
         str+=strlen(str)+1;
-        *str++=flv;*str++=0;
-        for(;optind<argc;optind++) {
+        *str++=flv;
+        *str++=0;
+        for(; optind<argc; optind++) {
             lkfs=kfs;
             memset(filename,0,MAX_PATH);
             if(argv[optind][0]!='/') {
-                getcwd(filename, MAX_PATH-1);xstrcat(filename, "/", MAX_PATH);
+                getcwd(filename, MAX_PATH-1);
+                xstrcat(filename, "/", MAX_PATH);
             }
             xstrcat(filename, argv[optind], MAX_PATH);
             if(access(filename,R_OK) == -1) {
@@ -406,16 +431,22 @@ int main(int argc, char **argv,char **envp)
                 write_log("have no write access to %s. file wouldn't be removed",filename);
                 lkfs=0;
             }
-            str[0]=lkfs?'^':0;str[1]=0;
+            str[0]=lkfs?'^':0;
+            str[1]=0;
             xstrcat(str, filename, MSG_BUFFER-(str-(char*)buf));
-            str+=strlen(str)+1;nf++;
+            str+=strlen(str)+1;
+            nf++;
         }
         if(nf) {
-            xstrcpy(str, "", 2);str+=2;
+            xstrcpy(str, "", 2);
+            str+=2;
             rc=xsendget(sock,buf,str-buf);
-        } else write_log("no files to send");
-          } break;
-        case QR_QUEUE:
+        } else {
+            write_log("no files to send");
+        }
+    }
+    break;
+    case QR_QUEUE:
         xsend(sock,buf,3);
         rc=getqueueinfo();
         break;

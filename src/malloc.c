@@ -34,7 +34,8 @@ char *malloc ();
 char *
 rpl_malloc (size_t n)
 {
-  if (n == 0)
-    n = 1;
-  return malloc (n);
+    if (n == 0) {
+        n = 1;
+    }
+    return malloc (n);
 }

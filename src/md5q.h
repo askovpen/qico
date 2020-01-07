@@ -82,9 +82,9 @@ If using PROTOTYPES, then PROTO_LIST returns the list, otherwise it
 
 /* MD5 context. */
 typedef struct {
-  UINT4 state[4];                                   /* state (ABCD) */
-  UINT4 count[2];        /* number of bits, modulo 2^64 (lsb first) */
-  unsigned char buffer[64];                         /* input buffer */
+    UINT4 state[4];                                   /* state (ABCD) */
+    UINT4 count[2];        /* number of bits, modulo 2^64 (lsb first) */
+    unsigned char buffer[64];                         /* input buffer */
 } MD5_CTX;
 
 
@@ -96,7 +96,7 @@ typedef struct {
 typedef unsigned char md_caddr_t[MD5_DIGEST_LEN];
 
 extern void md5_cram_get(const unsigned char *secret, const unsigned char *challenge,
-         int challenge_length, unsigned char *digest);
+                         int challenge_length, unsigned char *digest);
 extern void md5_cram_set(const unsigned char *challenge);
 
 extern unsigned char *md5_challenge(const unsigned char *buf);

@@ -121,7 +121,7 @@ struct _BP_SESSION {
     size_t rxpos;		/* Receiving file pos */
 
     flist_t *oflist;		/* List of files to transmit */
-    
+
     char *rfname;		/* Receiving file name */
     time_t rmtime;		/* ... mtime */
 
@@ -130,13 +130,13 @@ struct _BP_SESSION {
     int cls;
     sts_t ostatus;
 
-    int wait_for_get;		/* In NR mode we sent -1 as file offset 
+    int wait_for_get;		/* In NR mode we sent -1 as file offset
     				   and wait for M_GET */
     int wait_got;
     int wait_addr;		/* Awaiting remote address */
     int sent_eob;
     int recv_eob;
-    int delay_eob;		/* Delay sending M_EOB message until 
+    int delay_eob;		/* Delay sending M_EOB message until
     				   remote's one if remote is binkp/1.0 and
     				   pretends to have FREQ on us */
 

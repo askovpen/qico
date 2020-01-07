@@ -40,8 +40,9 @@ int do_call(ftnaddr_t *fa, char *site, char *port)
     if ( cfgs( CFG_RUNONCALL )) {
         char buf[MAX_PATH];
         snprintf( buf, MAX_PATH, "%s %s %s", ccs, ftnaddrtoa( fa ), port ? port : site );
-        if (( rc = execsh( buf )))
+        if (( rc = execsh( buf ))) {
             write_log( "exec '%s' returned rc=%d", buf, rc);
+        }
     }
 
     IFPerl( if (( rc = perl_on_call( fa, site, port )) != S_OK ) return rc );
@@ -52,28 +53,28 @@ int do_call(ftnaddr_t *fa, char *site, char *port)
         rc = modem_dial( site, port );
 
         switch( rc ) {
-            case MC_OK:
-                rc = -1;
-                break;
+        case MC_OK:
+            rc = -1;
+            break;
 
-            case MC_RING:
-            case MC_BUSY:
-                rc = S_BUSY;
-                break;
+        case MC_RING:
+        case MC_BUSY:
+            rc = S_BUSY;
+            break;
 
-            case MC_ERROR:
-            case MC_FAIL:
-            case MC_CANCEL:
-                rc = S_REDIAL | S_ADDTRY;
-                break;
+        case MC_ERROR:
+        case MC_FAIL:
+        case MC_CANCEL:
+            rc = S_REDIAL | S_ADDTRY;
+            break;
 
-            case MC_NODIAL:
-                rc = S_NODIAL;
-                break;
+        case MC_NODIAL:
+            rc = S_NODIAL;
+            break;
 
-            case MC_BAD:
-                rc = S_OK;
-                break;
+        case MC_BAD:
+            rc = S_OK;
+            break;
         }
     } else {
         rc = ( tcp_dial( fa, site ) >= 0 ) ? -1 : ( S_REDIAL | S_ADDTRY );
@@ -83,31 +84,32 @@ int do_call(ftnaddr_t *fa, char *site, char *port)
         if ( cfgs( CFG_LOGINSCRIPT )) {
             char buf[MAX_PATH];
 
-            if ( *ccs == '!' )
+            if ( *ccs == '!' ) {
                 xstrcat( buf, ccs + 1, MAX_PATH - 1 );
-            else
+            } else {
                 snprintf( buf, MAX_PATH, "%s %s %s", ccs, ftnaddrtoa( fa ), port ? port : site );
+            }
 
             switch (( rc = execsh( buf ))) {
-                case EXT_OK:
-                case EXT_YOURSELF:
-                    rc = -1;
-                    break;
+            case EXT_OK:
+            case EXT_YOURSELF:
+                rc = -1;
+                break;
 
-                case EXT_DID_WORK:
-                    rc = 0;
-                    break;
+            case EXT_DID_WORK:
+                rc = 0;
+                break;
 
-                default:
-                    write_log( "Login script '%s' failed. rc=%d", buf, rc );
-                    rc = ( S_REDIAL | S_ADDTRY );
-                    break;
+            default:
+                write_log( "Login script '%s' failed. rc=%d", buf, rc );
+                rc = ( S_REDIAL | S_ADDTRY );
+                break;
             }
         }
 
         if ( rc == -1 ) {
             rc = session( SM_OUTBOUND, bink ? SESSION_BINKP : SESSION_AUTO, fa,
-                port ? atoi( connstr + strcspn( connstr, "0123456789" )) : TCP_SPEED );
+                          port ? atoi( connstr + strcspn( connstr, "0123456789" )) : TCP_SPEED );
 
             if (( rc & S_MASK ) == S_REDIAL && cfgi( CFG_FAILPOLLS )) {
                 write_log( "creating poll for %s", ftnaddrtoa( fa ));
@@ -116,11 +118,12 @@ int do_call(ftnaddr_t *fa, char *site, char *port)
         }
 
         sline( "Hanging up..." );
-        if ( port )
+        if ( port ) {
             modem_done();
-        else
+        } else {
             tcp_done();
-        
+        }
+
     }
 
     title( "Waiting..." );
@@ -137,8 +140,9 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 
     rc = nodelist_query( fa, &rnode );
 
-    if ( rc != 1 )
+    if ( rc != 1 ) {
         write_log( ndl_errors[0 - rc] );
+    }
 
     if ( !rnode ) {
         rnode = xcalloc( 1, sizeof( ninfo_t ));
@@ -152,36 +156,42 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 
     if (( flags & FC_ANY ) != FC_ANY ) {
         do {
-            if ( !ports )
+            if ( !ports ) {
                 return S_FAILURE;
+            }
 
             port = tty_findport( ports, cfgs( CFG_NODIAL ));
-            if ( !port )
+            if ( !port ) {
                 return S_FAILURE;
-            if ( rnode->tty )
+            }
+            if ( rnode->tty ) {
                 xfree( rnode->tty );
+            }
 
             rnode->tty = xstrdup( baseport( port ));
             ports = ports->next;
         } while( !checktimegaps( cfgs( CFG_CANCALL )));
 
-        if ( !checktimegaps( cfgs( CFG_CANCALL )))
+        if ( !checktimegaps( cfgs( CFG_CANCALL ))) {
             return S_FAILURE;
+        }
     } else {
         if (( port = tty_findport( ports, cfgs( CFG_NODIAL )))) {
             rnode->tty = xstrdup( baseport( port ));
-        } else
+        } else {
             return S_FAILURE;
+        }
     }
 
-    if ( !cfgi( CFG_TRANSLATESUBST ))
+    if ( !cfgi( CFG_TRANSLATESUBST )) {
         phonetrans( &rnode->phone, cfgsl( CFG_PHONETR ));
+    }
 
     if ( line ) {
         applysubst( rnode, psubsts );
-        
+
         while( rnode->hidnum && line != rnode->hidnum && applysubst( rnode, psubsts )
-            && rnode->hidnum != 1 );
+                && rnode->hidnum != 1 );
 
         if ( line != rnode->hidnum ) {
             write_log( "%s doesn't have line #%d", ftnaddrtoa(fa), line );
@@ -199,8 +209,9 @@ int force_call(ftnaddr_t *fa, int line, int flags)
         }
     }
 
-    if ( cfgi( CFG_TRANSLATESUBST ))
+    if ( cfgi( CFG_TRANSLATESUBST )) {
         phonetrans( &rnode->phone, cfgsl( CFG_PHONETR ));
+    }
 
     if( !log_init( cfgs( CFG_LOG ), rnode->tty )) {
         write_log( "can't open log %s", ccs );
@@ -209,10 +220,10 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 
     if( rnode->hidnum )
         write_log( "calling %s #%d, %s (%s)",
-            rnode->name, rnode->hidnum, ftnaddrtoa( fa ), rnode->phone );
+                   rnode->name, rnode->hidnum, ftnaddrtoa( fa ), rnode->phone );
     else
         write_log( "calling %s, %s (%s)",
-            rnode->name, ftnaddrtoa( fa ), rnode->phone );
+                   rnode->name, ftnaddrtoa( fa ), rnode->phone );
 
     rc = do_call( fa, rnode->phone, port );
     return rc;

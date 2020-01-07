@@ -42,7 +42,7 @@ int freq_ifextrp(slist_t *reqs)
         priv = 'p';
         sprt += 2;
     }
-    
+
     snprintf( fn, MAX_PATH, "/tmp/qreq.%04lx", tpid );
     if( !( f = fopen( fn, "wt" ))) {
         write_log( "can't open '%s' for writing: %s", fn, strerror( errno ));
@@ -50,8 +50,9 @@ int freq_ifextrp(slist_t *reqs)
     }
 
     while( reqs ) {
-        if ( cfgs( CFG_MAPIN ) && strchr( ccs, 'r' ))
+        if ( cfgs( CFG_MAPIN ) && strchr( ccs, 'r' )) {
             recode_to_local( reqs->str );
+        }
         DEBUG(('R',1,"requested '%s'", reqs->str));
         fprintf( f, "%s\n", reqs->str );
         reqs = reqs->next;
@@ -60,30 +61,44 @@ int freq_ifextrp(slist_t *reqs)
     if(!wz) {
         falist_t *ra;
         snprintf(sfn,MAX_PATH,"/tmp/qsrif.%04lx",tpid);
-        if(!(r=fopen(sfn,"wt"))){write_log("can't open '%s' for writing: %s",sfn,strerror(errno));return 0;}
+        if(!(r=fopen(sfn,"wt"))) {
+            write_log("can't open '%s' for writing: %s",sfn,strerror(errno));
+            return 0;
+        }
         fprintf(r,"SessionType %s\n",bink?"OTHER":"EMSI");
         fprintf(r,"Sysop %s\n",rnode->sysop);
-        for(ra=rnode->addrs;ra;ra=ra->next)fprintf(r,"AKA %s\n",ftnaddrtoa(&ra->addr));
-        if(!is_ip)fprintf(r,"Baud %d\n",rnode->realspeed);
+        for(ra=rnode->addrs; ra; ra=ra->next) {
+            fprintf(r,"AKA %s\n",ftnaddrtoa(&ra->addr));
+        }
+        if(!is_ip) {
+            fprintf(r,"Baud %d\n",rnode->realspeed);
+        }
         fprintf(r,"Time -1\n");
         fprintf(r,"RemoteStatus %sTED\n",sprt);
         fprintf(r,"SystemStatus %sTED\n",slst);
         fprintf(r,"RequestList /tmp/qreq.%04lx\n",tpid);
         fprintf(r,"ResponseList /tmp/qfls.%04lx\n",tpid);
         fprintf(r,"Location %s\n",rnode->place);
-        if(rnode->phone&&*rnode->phone)fprintf(r,"Phone %s\n",rnode->phone);
-        if(rnode->options&O_PWD)fprintf(r,"Password %s\n",rnode->pwd);
+        if(rnode->phone&&*rnode->phone) {
+            fprintf(r,"Phone %s\n",rnode->phone);
+        }
+        if(rnode->options&O_PWD) {
+            fprintf(r,"Password %s\n",rnode->pwd);
+        }
         fprintf(r,"Mailer %s\n",rnode->mailer);
         fprintf(r,"Site %s\n",rnode->name);
-        if(!is_ip&&(ss=getenv("CALLER_ID"))&&strcasecmp(ss,"none")&&strlen(ss)>3)fprintf(r,"CallerID %s\n",ss);
+        if(!is_ip&&(ss=getenv("CALLER_ID"))&&strcasecmp(ss,"none")&&strlen(ss)>3) {
+            fprintf(r,"CallerID %s\n",ss);
+        }
         fprintf(r,"OurAKA %s\n",ftnaddrtoa(ma));
         fprintf(r,"TRANX %08lu\n",time(NULL));
         fclose(r);
         snprintf(s,MAX_PATH,"%s %s",cfgs(CFG_SRIFRP),sfn);
     } else snprintf(s,MAX_PATH,"%s -wazoo -%c -s%d %s /tmp/qreq.%04lx /tmp/qfls.%04lx /tmp/qrep.%04lx",
-            cfgs(CFG_EXTRP),priv,rnode->realspeed,ftnaddrtoa(&rnode->addrs->addr),tpid,tpid,tpid);
+                        cfgs(CFG_EXTRP),priv,rnode->realspeed,ftnaddrtoa(&rnode->addrs->addr),tpid,tpid,tpid);
     write_log("exec '%s' returned rc=%d",s,execsh(s));
-    lunlink(fn);lunlink(sfn);
+    lunlink(fn);
+    lunlink(sfn);
     snprintf(fn,MAX_PATH,"/tmp/qfls.%04lx",tpid);
     if(!(f=fopen(fn,"rt"))) {
         snprintf(fn,MAX_PATH,"/tmp/qrep.%04lx",tpid);
@@ -94,33 +109,57 @@ int freq_ifextrp(slist_t *reqs)
         return 0;
     }
     while(fgets(s,MAX_PATH-1,f)) {
-        if(*s=='\n'||*s=='\r'||*s==' '||!*s)continue;
-        ss=s;kil=0;got=1;
-        if(*s=='='||*s=='-'){ss++;kil=1;}
-            else if(*s=='+')ss++;
+        if(*s=='\n'||*s=='\r'||*s==' '||!*s) {
+            continue;
+        }
+        ss=s;
+        kil=0;
+        got=1;
+        if(*s=='='||*s=='-') {
+            ss++;
+            kil=1;
+        } else if(*s=='+') {
+            ss++;
+        }
         p=ss+strlen(ss)-1;
-        while(*p=='\r'||*p=='\n')*p--=0;
+        while(*p=='\r'||*p=='\n') {
+            *p--=0;
+        }
         p=strrchr(ss,' ');
-        if(p)*p++=0;else p=ss;
+        if(p) {
+            *p++=0;
+        } else {
+            p=ss;
+        }
         DEBUG(('R',1,"sending '%s' as '%s'%s",ss,qbasename((p!=ss)?p:ss),kil?" and kill":""));
         addflist(&fl,xstrdup(ss),xstrdup(qbasename((p!=ss)?p:ss)),kil?'^':' ',0,NULL,0);
     }
-    fclose(f);lunlink(fn);
+    fclose(f);
+    lunlink(fn);
     snprintf(fn,MAX_PATH,"/tmp/qrep.%04lx",tpid);
-    if(!(f=fopen(fn,"rt"))&&wz)write_log("can't open '%s' for reading",fn);
+    if(!(f=fopen(fn,"rt"))&&wz) {
+        write_log("can't open '%s' for reading",fn);
+    }
     snprintf(fn,MAX_PATH,"/tmp/qpkt.%04lx%02x",tpid,++freq_pktcount);
     g=openpktmsg(ma,&rnode->addrs->addr,cfgs(CFG_FREQFROM),rnode->sysop,cfgs(CFG_FREQSUBJ),NULL,fn,1);
     if(!g) {
         write_log("can't open '%s' for writing: %s",fn,strerror(errno));
-        if(f)fclose(f);
+        if(f) {
+            fclose(f);
+        }
         freq_pktcount--;
     }
     if(f&&g) {
         while(fgets(s,MAX_PATH-1,f)) {
             p=s+strlen(s)-1;
-            while(*p=='\r'||*p=='\n')*p--=0;
-            if(cfgi(CFG_RECODEPKTS))recode_to_remote(s);
-            fputs(s,g);fputc('\r',g);
+            while(*p=='\r'||*p=='\n') {
+                *p--=0;
+            }
+            if(cfgi(CFG_RECODEPKTS)) {
+                recode_to_remote(s);
+            }
+            fputs(s,g);
+            fputc('\r',g);
         }
         fclose(f);
         closeqpkt(g,ma);
@@ -140,10 +179,15 @@ int freq_recv(char *fn)
     char s[MAX_PATH],*p;
     slist_t *reqs=NULL;
     f=fopen(fn,"rt");
-    if(!f){write_log("can't open '%s' for reading: %s",fn,strerror(errno));return 0;}
+    if(!f) {
+        write_log("can't open '%s' for reading: %s",fn,strerror(errno));
+        return 0;
+    }
     while(fgets(s,MAX_PATH-1,f)) {
         p=s+strlen(s)-1;
-        while(*p=='\r'||*p=='\n')*p--=0;
+        while(*p=='\r'||*p=='\n') {
+            *p--=0;
+        }
         slist_add(&reqs,s);
     }
     fclose(f);
@@ -161,8 +205,9 @@ int freq_recv(char *fn)
  */
 int is_freq_available( void )
 {
-    if ( !cfgs( CFG_EXTRP ) && !cfgs( CFG_SRIFRP ))
+    if ( !cfgs( CFG_EXTRP ) && !cfgs( CFG_SRIFRP )) {
         return FR_NOTHANDLED;
+    }
 
     return (( cfgs( CFG_EXTRP ) || cfgs( CFG_SRIFRP ))
             && checktimegaps( cfgs( CFG_FREQTIME )));

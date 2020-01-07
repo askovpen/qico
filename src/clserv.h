@@ -30,19 +30,19 @@
 #define QCC_TTYLEN	32		/* tty name length */
 
 typedef struct _cls_cl_t {
-	struct _cls_cl_t *next;
-	unsigned char *auth;
-	short id;
-	int sock;
-	char type;
+    struct _cls_cl_t *next;
+    unsigned char *auth;
+    short id;
+    int sock;
+    char type;
 } cls_cl_t;
 
 typedef struct _cls_ln_t {
-	struct _cls_ln_t *next;
-	unsigned short id;
-	struct sockaddr *addr;
-	int emsilen;
-	char *emsi;
+    struct _cls_ln_t *next;
+    unsigned short id;
+    struct sockaddr *addr;
+    int emsilen;
+    char *emsi;
 } cls_ln_t;
 
 typedef int (*xsend_cb_t)(int, const char *, size_t);

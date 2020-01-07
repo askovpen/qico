@@ -1,7 +1,7 @@
 /**********************************************************
  * File: anylist.h
  * Created at Sun Jul  1 00:43:23 2001 by lev // lev@serebryakov.spb.ru
- * 
+ *
  * $Id: anylist.h,v 1.2 2001/09/17 18:56:48 lev Exp $
  **********************************************************/
 #ifndef __ANYLIST_H__
@@ -9,8 +9,8 @@
 
 /* Universal list descriptor -- for generic procedures */
 typedef struct _AL_ITEM {
-	struct _AL_ITEM *next;
-	CHAR data[];
+    struct _AL_ITEM *next;
+    CHAR data[];
 } al_item_t;
 
 
@@ -20,11 +20,11 @@ typedef int (*listop_cmp)(al_item_t *l, void *key);
 
 /* Head of list -- operations and first element pointer */
 typedef struct _ANYLIST {
-	listop_alloc *alloc;
-	listop_free *free;
-	listop_cmp *cmp;
-	al_item_t *head;
-	al_item_t *tail;
+    listop_alloc *alloc;
+    listop_free *free;
+    listop_cmp *cmp;
+    al_item_t *head;
+    al_item_t *tail;
 } anylist_t;
 
 anylist_t *al_new(listop_alloc *alloc, listop_free *free, listop_cmp *cmp);
