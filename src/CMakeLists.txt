@@ -25,7 +25,7 @@ add_executable(qico ${qico_SOURCES}
 	"${CMAKE_CURRENT_BINARY_DIR}/flaglexp.c"
 )
 if (${PERLLIBS_FOUND})
-	target_link_libraries(qico ${PERL_LIBRARY})
+	target_link_libraries(qico ${PERL_LIBRARY} -lpthread)
 endif (${PERLLIBS_FOUND})
 
 add_executable(qctl ${qctl_SOURCES})
