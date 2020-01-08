@@ -1,0 +1,13 @@
+language: c
+branches:
+  only:
+  - master
+before_install:
+- sudo apt-get install libcmocka-dev libncursesw5-dev libncurses5-dev
+script:
+- cd  ~/build/askovpen/qico
+- mkdir build
+- cd build
+- cmake .. -DWITH_TESTS=1
+- cmake --build .
+- ctest
