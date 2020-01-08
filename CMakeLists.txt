@@ -61,5 +61,5 @@ endif (${PERLLIBS_FOUND})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.h ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 add_subdirectory(src)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
