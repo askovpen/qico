@@ -42,6 +42,6 @@
 
 #cmakedefine WITH_PERL @WITH_PERL@
 
-#ifdef HAVE_TERMIOS_H
+#if defined(HAVE_TERMIOS_H) && defined(FreeBSD)
 #define HAVE_TIOCSCTTY 1
 #endif
