@@ -41,7 +41,3 @@
 #cmakedefine PACKAGE_VERSION "@PACKAGE_VERSION@"
 
 #cmakedefine WITH_PERL @WITH_PERL@
-
-#if defined(HAVE_TERMIOS_H) && defined(FreeBSD)
-#define HAVE_TIOCSCTTY 1
-#endif
