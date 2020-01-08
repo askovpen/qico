@@ -2,6 +2,8 @@
 flex_target(lexer ../src/flaglex.l "${CMAKE_CURRENT_BINARY_DIR}/flaglex.c")                                                                                                                                         
 bison_target(parser ../src/flagexp.y "${CMAKE_CURRENT_BINARY_DIR}/flaglexp.c")
 
+find_package(CMocka)
+include_directories(${CMOCKA_INCLUDE_DIR})
 if (${PERLLIBS_FOUND})                                                                                                                                                                                       
   set(perl_SRC ../src/perl.c)                                                                                                                                                                                       
 endif (${PERLLIBS_FOUND})
@@ -44,8 +46,9 @@ ${perl_SRC}
 )
 ADD_DEFINITIONS(-g -DDEBUG -D_DEBUG)
 add_executable(test1 ${test1_src})
-TARGET_LINK_LIBRARIES(test1 cmocka dl)
+TARGET_LINK_LIBRARIES(test1 ${CMOCKA_LIBRARY} dl)
 if (${PERLLIBS_FOUND})                                                                                                                                                                                       
 target_link_libraries(test1 ${PERL_LIBRARY} -lpthread)                                                                                                                                                                
 endif (${PERLLIBS_FOUND})
 
+add_test(test1 ${CMAKE_CURRENT_BINARY_DIR}/test1)
