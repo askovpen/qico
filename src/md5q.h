@@ -63,8 +63,10 @@ typedef unsigned short int UINT2;
 #endif
 
 /* UINT4 defines a four byte word */
-#ifdef UINT16
+#ifdef UINT32
 typedef UINT32 UINT4;
+#elif SIZEOF_INT==4
+typedef unsigned int UINT4;
 #else
 typedef unsigned long int UINT4;
 #endif
