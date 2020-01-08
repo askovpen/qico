@@ -47,7 +47,7 @@
 #if !defined( POSIX_TERMIOS ) && !defined( BSD_SGTTY ) && !defined( SYSV_TERMIO)
 # if defined(linux) || defined(sunos4) || defined(_AIX) || defined(BSD) || \
      defined(SVR4) || defined(solaris2) || defined(m88k) || defined(M_UNIX) ||\
-     defined(__sgi)
+     defined(__sgi) || defined(__FreeBSD__)
 #  define POSIX_TERMIOS
 # else
 #  define SYSV_TERMIO

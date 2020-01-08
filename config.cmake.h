@@ -17,6 +17,8 @@
 #cmakedefine HAVE_FCNTL_H @HAVE_FCNTL_H@
 #cmakedefine HAVE_UTIME_H @HAVE_UTIME_H@
 #cmakedefine HAVE_SYSLOG_H @HAVE_SYSLOG_H@
+#cmakedefine HAVE_TERMIOS_H @HAVE_TERMIOS_H@
+#cmakedefine HAVE_TERMIO_H @HAVE_TERMIO_H@
 #cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
 #cmakedefine HAVE_DIRENT_H @HAVE_DIRENT_H@
 #cmakedefine HAVE_TIME_H @HAVE_TIME_H@
@@ -39,3 +41,7 @@
 #cmakedefine PACKAGE_VERSION "@PACKAGE_VERSION@"
 
 #cmakedefine WITH_PERL @WITH_PERL@
+
+#ifdef HAVE_TERMIOS_H
+#define HAVE_TIOCSCTTY 1
+#endif
