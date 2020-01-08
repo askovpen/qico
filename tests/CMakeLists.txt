@@ -1,6 +1,9 @@
 
+include_directories(                                                                                                                                                                                         
+  ${CMAKE_CURRENT_BINARY_DIR}                                                                                                                                                                                
+)
 flex_target(lexer ../src/flaglex.l "${CMAKE_CURRENT_BINARY_DIR}/flaglex.c")                                                                                                                                         
-bison_target(parser ../src/flagexp.y "${CMAKE_CURRENT_BINARY_DIR}/flaglexp.c")
+bison_target(parser ../src/flagexp.y "${CMAKE_CURRENT_BINARY_DIR}/flaglexp.c" DEFINES_FILE "${CMAKE_CURRENT_BINARY_DIR}/flagexp.h")
 
 find_package(CMocka)
 include_directories(${CMOCKA_INCLUDE_DIR})
