@@ -1,0 +1,10 @@
+freebsd_instance:
+  image_family: freebsd-12-1
+
+task:
+  script:
+  - mkdir build
+  - cd build
+  - cmake .. -WITH_TESTS=1
+  - cmake --build .
+  - ctest
