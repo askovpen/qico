@@ -3,7 +3,7 @@ freebsd_instance:
 
 task:
   install_script:
-  - pkg install -y cmake
+  - pkg install -y cmake perl5 bison flex
   script:
   - mkdir build
   - cd build
