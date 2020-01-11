@@ -3,11 +3,11 @@ freebsd_instance:
 
 task:
   install_script:
-  - pkg install -y cmake perl5 bison flex
+  - pkg install -y cmake perl5 bison flex cmocka
   script:
   - mkdir build
   - cd build
-  - cmake .. -WITH_TESTS=1
+  - cmake .. -DWITH_TESTS=1
   - cmake --build .
   test_script:
   - ctest
